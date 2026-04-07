@@ -32,6 +32,7 @@
 html{font-size:13.5px}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 10%,rgba(212,168,83,.03),transparent 60%),radial-gradient(ellipse at 80% 90%,rgba(96,165,250,.02),transparent 60%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:80px 80px;opacity:.28;mask-image:radial-gradient(circle at center,black,transparent 84%);pointer-events:none;z-index:0}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
@@ -80,6 +81,19 @@ a{color:var(--gold);text-decoration:none}
 .ct{font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem}
 .cv{font-family:'Playfair Display',serif;font-size:1.65rem;font-weight:700;line-height:1.2}
 .cv.gold{background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.metric-card{min-height:170px;display:flex;flex-direction:column;justify-content:space-between}
+.metric-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem}
+.metric-badge{display:inline-flex;align-items:center;gap:.3rem;padding:.26rem .62rem;border-radius:999px;font-size:.68rem;font-weight:700;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:var(--text2)}
+.metric-meta{margin-top:.9rem;font-size:.78rem;color:var(--text2);line-height:1.5}
+.metric-kpi{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+.metric-trend{font-size:.76rem;color:var(--text3)}
+.metric-card::after{content:'';position:absolute;inset:auto -12% -38% auto;width:180px;height:180px;border-radius:50%;filter:blur(10px);opacity:.22;pointer-events:none}
+.tone-gold::after{background:radial-gradient(circle,var(--gold2),transparent 62%)}
+.tone-green::after{background:radial-gradient(circle,var(--green),transparent 62%)}
+.tone-blue::after{background:radial-gradient(circle,var(--blue),transparent 62%)}
+.tone-purple::after{background:radial-gradient(circle,var(--purple),transparent 62%)}
+.tone-red::after{background:radial-gradient(circle,var(--red),transparent 62%)}
+.tone-cyan::after{background:radial-gradient(circle,var(--cyan),transparent 62%)}
 .badge{display:inline-flex;align-items:center;gap:.2rem;font-size:.72rem;margin-top:.4rem;padding:.15rem .55rem;border-radius:20px;font-weight:500}
 .up{color:var(--green);background:rgba(52,211,153,.1)}
 .dn{color:var(--red);background:rgba(248,113,113,.1)}
@@ -223,6 +237,31 @@ tr.clickable:hover td{color:var(--text);background:rgba(212,168,83,.03)}
 .sstrip .si{display:flex;flex-direction:column;gap:.1rem}
 .sstrip .sl{font-size:.6rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text3)}
 .sstrip .sv{font-size:.95rem;font-weight:600}
+.desktop-hero{display:grid;grid-template-columns:1.45fr .9fr;gap:1rem;margin-bottom:1.15rem}
+.desktop-hero-main,.desktop-hero-side{position:relative;overflow:hidden;border:1px solid rgba(212,168,83,.14);border-radius:26px;background:linear-gradient(145deg,rgba(20,22,32,.96),rgba(10,11,16,.96));box-shadow:0 22px 80px rgba(0,0,0,.35)}
+.desktop-hero-main{padding:1.5rem 1.6rem 1.45rem}
+.desktop-hero-main::before,.desktop-hero-side::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at top right,rgba(212,168,83,.16),transparent 38%),radial-gradient(circle at bottom left,rgba(96,165,250,.12),transparent 42%);pointer-events:none}
+.hero-kicker{display:inline-flex;align-items:center;gap:.45rem;padding:.34rem .72rem;border-radius:999px;background:rgba(212,168,83,.08);border:1px solid rgba(212,168,83,.14);font-size:.67rem;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700}
+.hero-title{margin-top:1rem;font-family:'Playfair Display',serif;font-size:2.45rem;line-height:.96;letter-spacing:-.03em;max-width:11ch}
+.hero-subtitle{margin-top:.8rem;max-width:58ch;font-size:.88rem;line-height:1.65;color:#a9abb9}
+.hero-chip-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.15rem}
+.hero-chip{display:flex;align-items:center;gap:.45rem;padding:.5rem .8rem;border-radius:999px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);font-size:.74rem;color:var(--text2)}
+.hero-chip strong{color:var(--text)}
+.hero-actions{display:flex;gap:.65rem;flex-wrap:wrap;margin-top:1.25rem}
+.hero-action-btn{min-width:156px;justify-content:center}
+.desktop-hero-side{padding:1.4rem}
+.hero-side-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.95px;color:var(--text3);margin-bottom:.9rem}
+.hero-side-value{font-family:'Playfair Display',serif;font-size:2.1rem;line-height:1;color:var(--text)}
+.hero-side-value.gold{background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-side-grid{display:grid;gap:.75rem;margin-top:1.1rem}
+.hero-side-stat{padding:.9rem 1rem;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.hero-side-stat .label{display:block;font-size:.66rem;text-transform:uppercase;letter-spacing:.9px;color:var(--text3);margin-bottom:.28rem}
+.hero-side-stat .value{font-size:1rem;font-weight:700}
+.hero-allocation{display:grid;gap:.65rem;margin-top:1rem}
+.hero-alloc-row{display:grid;grid-template-columns:90px 1fr auto;gap:.7rem;align-items:center;font-size:.75rem}
+.hero-alloc-row .name{color:var(--text2)}
+.hero-alloc-bar{height:8px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden}
+.hero-alloc-fill{height:100%;border-radius:999px}
 
 /* Stat row */
 .sr{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.025)}
@@ -305,6 +344,51 @@ tr.clickable:hover td{color:var(--text);background:rgba(212,168,83,.03)}
   .auth-card{width:min(100%,460px);padding:1.35rem 1.1rem 1.25rem;border-radius:24px}
   .auth-title{font-size:1.45rem}
   .auth-copy{font-size:.82rem}
+  .desktop-hero{grid-template-columns:1fr}
+  .desktop-hero-main,.desktop-hero-side{padding:1.1rem 1rem;border-radius:22px}
+  .hero-title{font-size:1.55rem;max-width:none}
+  .hero-subtitle{font-size:.82rem}
+  .hero-actions{margin-top:1rem}
+  .hero-action-btn{min-width:0;flex:1}
+  .hero-alloc-row{grid-template-columns:78px 1fr auto}
+}
+
+@media(min-width:861px){
+  html{font-size:14px}
+  body{background:
+    radial-gradient(circle at top left,rgba(212,168,83,.08),transparent 30%),
+    radial-gradient(circle at 85% 12%,rgba(96,165,250,.08),transparent 26%),
+    linear-gradient(180deg,#08090d 0%,#0d1016 48%,#090a0e 100%)}
+  .hdr{max-width:calc(100% - 36px);margin:18px auto 0;border:1px solid rgba(212,168,83,.16);border-radius:22px;background:linear-gradient(180deg,rgba(12,14,20,.92),rgba(9,10,14,.88));box-shadow:0 18px 48px rgba(0,0,0,.32)}
+  .hdr-in{max-width:1680px;height:68px}
+  .logo{gap:.9rem}
+  .logo-i{width:38px;height:38px;border-radius:12px;font-size:1.05rem;box-shadow:0 14px 30px rgba(212,168,83,.22)}
+  .logo-t{font-size:1.28rem}
+  .hdr-r{gap:.85rem}
+  .avatar{width:38px;height:38px;font-size:.9rem;box-shadow:0 12px 26px rgba(0,0,0,.28)}
+  .tabs-w{max-width:calc(100% - 36px);margin:12px auto 0;padding:0 1rem;background:rgba(12,14,20,.72);border:1px solid rgba(212,168,83,.12);border-radius:22px;backdrop-filter:blur(18px)}
+  .tabs{max-width:1680px;padding:.68rem 0;gap:.35rem}
+  .tab{padding:.78rem 1rem;border:1px solid transparent;border-radius:16px;border-bottom:none;text-transform:none;font-size:.8rem;letter-spacing:.2px}
+  .tab:hover{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.04)}
+  .tab.active{background:linear-gradient(180deg,rgba(212,168,83,.18),rgba(212,168,83,.08));border-color:rgba(212,168,83,.2);box-shadow:0 10px 24px rgba(212,168,83,.12)}
+  .install-banner{top:calc(98px + var(--safe-top));max-width:1640px;margin:0 auto}
+  .main{max-width:1680px;padding:1.55rem 1.3rem 3.5rem}
+  .card,.setting-card,.scan-result,.scan-section,.drop-zone{background:linear-gradient(155deg,rgba(20,22,32,.96),rgba(12,13,20,.92));border:1px solid rgba(212,168,83,.12);border-radius:22px;box-shadow:0 18px 44px rgba(0,0,0,.26)}
+  .card:hover{transform:translateY(-4px);border-color:rgba(212,168,83,.22);box-shadow:0 22px 54px rgba(0,0,0,.32)}
+  .setting-card{padding:1.35rem 1.4rem}
+  .toolbar{padding:.95rem 1.05rem;background:rgba(255,255,255,.028);border:1px solid rgba(212,168,83,.1);border-radius:18px;backdrop-filter:blur(12px)}
+  .stitle{margin:1.8rem 0 .95rem;font-size:1.22rem}
+  .tw{padding-top:.2rem}
+  table{border-collapse:separate;border-spacing:0 .65rem}
+  thead tr{background:rgba(255,255,255,.02)}
+  th{padding:.8rem .75rem;border-bottom:none}
+  tbody tr{background:rgba(255,255,255,.025);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+  tbody tr td:first-child{border-top-left-radius:14px;border-bottom-left-radius:14px}
+  tbody tr td:last-child{border-top-right-radius:14px;border-bottom-right-radius:14px}
+  td{padding:.85rem .75rem;border-bottom:none}
+  tr.clickable:hover td{background:rgba(212,168,83,.06)}
+  .sstrip{padding:1rem 1.1rem;border-radius:20px;background:linear-gradient(120deg,rgba(255,255,255,.03),rgba(212,168,83,.05),rgba(96,165,250,.04));border:1px solid rgba(212,168,83,.12)}
+  .sstrip .si{min-width:130px}
 }
 
 /* ====== LOGIN GATE ====== */
@@ -406,6 +490,33 @@ body.auth-ready .auth-screen{display:none}
 
 <!-- ============ OVERVIEW ============ -->
 <div class="tc active" id="tc-overview">
+  <div class="desktop-hero">
+    <div class="desktop-hero-main">
+      <span class="hero-kicker">Wealth Command Deck</span>
+      <div class="hero-title" id="overviewHeroTitle">A sharper view of your financial world.</div>
+      <div class="hero-subtitle" id="overviewHeroSubtitle">See allocation, cash flow, and portfolio momentum in one calm control surface.</div>
+      <div class="hero-chip-row" id="overviewHeroChips"></div>
+      <div class="hero-actions">
+        <button class="btn btn-gold hero-action-btn" onclick="switchTab('transactions')">Open Cash Flow</button>
+        <button class="btn btn-outline hero-action-btn" onclick="switchTab('scanner')">Scan New Statement</button>
+      </div>
+    </div>
+    <div class="desktop-hero-side">
+      <div class="hero-side-title">Current Snapshot</div>
+      <div class="hero-side-value gold" id="overviewHeroValue">₹0</div>
+      <div class="hero-side-grid">
+        <div class="hero-side-stat">
+          <span class="label">Portfolio Delta</span>
+          <span class="value" id="overviewHeroDelta">₹0</span>
+        </div>
+        <div class="hero-side-stat">
+          <span class="label">Monthly Flow</span>
+          <span class="value" id="overviewHeroFlow">₹0</span>
+        </div>
+      </div>
+      <div class="hero-allocation" id="overviewHeroAlloc"></div>
+    </div>
+  </div>
   <div class="sstrip" id="overviewStrip"></div>
   <div class="g g4" id="overviewCards"></div>
   <div class="g g23" style="margin-top:1rem">
@@ -1497,6 +1608,21 @@ function updateNavigationState(activeTab = CURRENT_TAB){
   updateInstallUI();
 }
 
+function buildMetricCard({ tone='gold', label='', value='', meta='', badge='' } = {}){
+  return `
+    <div class="card metric-card tone-${tone}">
+      <div class="metric-top">
+        <div class="ct">${label}</div>
+        ${badge ? `<span class="metric-badge">${badge}</span>` : ''}
+      </div>
+      <div class="metric-kpi">
+        <div class="cv ${tone==='gold' ? 'gold' : ''}">${value}</div>
+      </div>
+      ${meta ? `<div class="metric-meta">${meta}</div>` : ''}
+    </div>
+  `;
+}
+
 // ═══════════════════════════════════════════
 //  TAB NAVIGATION
 // ═══════════════════════════════════════════
@@ -1556,6 +1682,57 @@ function renderOverview(){
   const totalPnL = (totalStockVal-totalStockInv)+(totalMFVal-totalMFInv);
   const totalIncome = DATA.income.reduce((s,x)=>s+Number(x.net_amount||0),0);
   const totalExp = DATA.transactions.filter(x=>x.type==='expense').reduce((s,x)=>s+Math.abs(Number(x.amount||0)),0);
+  const totalHoldings = DATA.stocks.length + DATA.mutual_funds.length;
+  const monthlyFlow = totalIncome - totalExp;
+  const totalLiquid = totalAccBal + totalFD;
+  const assetRows = [
+    { name:'Banks', value:totalAccBal, color:'linear-gradient(90deg,#60a5fa,#22d3ee)' },
+    { name:'Stocks', value:totalStockVal, color:'linear-gradient(90deg,#d4a853,#f0d48a)' },
+    { name:'Funds', value:totalMFVal, color:'linear-gradient(90deg,#34d399,#22c55e)' },
+    { name:'FDs', value:totalFD, color:'linear-gradient(90deg,#a78bfa,#8b5cf6)' }
+  ].filter(row=>row.value>0);
+  const allocDenominator = assetRows.reduce((sum, row)=>sum + row.value, 0) || 1;
+
+  const heroTitle = document.getElementById('overviewHeroTitle');
+  const heroSubtitle = document.getElementById('overviewHeroSubtitle');
+  const heroChips = document.getElementById('overviewHeroChips');
+  const heroValue = document.getElementById('overviewHeroValue');
+  const heroDelta = document.getElementById('overviewHeroDelta');
+  const heroFlow = document.getElementById('overviewHeroFlow');
+  const heroAlloc = document.getElementById('overviewHeroAlloc');
+  if(heroTitle) heroTitle.textContent = netWorth ? 'A premium command center for every rupee you own.' : 'Start building your private wealth command center.';
+  if(heroSubtitle) heroSubtitle.textContent = netWorth
+    ? `Track ${DATA.accounts.length} accounts, ${totalHoldings} holdings, and your monthly money rhythm with a cleaner desktop view built for faster decisions.`
+    : 'Add your accounts, investments, income, and statements to unlock a richer operating view of your finances.';
+  if(heroChips){
+    heroChips.innerHTML = [
+      `<span class="hero-chip"><strong>${DATA.accounts.length}</strong> active account${DATA.accounts.length===1?'':'s'}</span>`,
+      `<span class="hero-chip"><strong>${totalHoldings}</strong> live holding${totalHoldings===1?'':'s'}</span>`,
+      `<span class="hero-chip"><strong>${readScans().length}</strong> recent scan${readScans().length===1?'':'s'}</span>`,
+      `<span class="hero-chip"><strong>${AUTH_STATE.user?.email ? 'Cloud synced' : 'Local mode'}</strong>${AUTH_STATE.user?.email ? ` as ${AUTH_STATE.user.email}` : ''}</span>`
+    ].join('');
+  }
+  if(heroValue) heroValue.textContent = fmt(netWorth);
+  if(heroDelta){
+    heroDelta.textContent = `${totalPnL>=0?'+':''}${fmt(totalPnL)}`;
+    heroDelta.className = `value ${totalPnL>=0?'pos':'neg'}`;
+  }
+  if(heroFlow){
+    heroFlow.textContent = `${monthlyFlow>=0?'+':''}${fmt(monthlyFlow)}`;
+    heroFlow.className = `value ${monthlyFlow>=0?'pos':'neg'}`;
+  }
+  if(heroAlloc){
+    heroAlloc.innerHTML = assetRows.length ? assetRows.map((row)=>{
+      const pct = Math.max(4, (row.value / allocDenominator) * 100);
+      return `
+        <div class="hero-alloc-row">
+          <span class="name">${row.name}</span>
+          <div class="hero-alloc-bar"><div class="hero-alloc-fill" style="width:${pct}%;background:${row.color}"></div></div>
+          <span>${fmt(row.value)}</span>
+        </div>
+      `;
+    }).join('') : `<div class="hero-side-stat"><span class="label">Allocation</span><span class="value" style="font-weight:600;color:var(--text2)">Add holdings to see allocation</span></div>`;
+  }
 
   document.getElementById('overviewStrip').innerHTML = `
     <div class="si"><span class="sl">Net Worth</span><span class="sv gold" style="background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent">${fmt(netWorth)}</span></div>
@@ -1567,10 +1744,34 @@ function renderOverview(){
   `;
 
   document.getElementById('overviewCards').innerHTML = `
-    <div class="card card-glow"><div class="ct">Stocks Value</div><div class="cv gold">${fmt(totalStockVal)}</div><span class="badge ${totalPnL>=0?'up':'dn'}">${totalStockInv?fmtPct(((totalStockVal-totalStockInv)/totalStockInv)*100):'—'}</span></div>
-    <div class="card"><div class="ct">Mutual Funds</div><div class="cv">${fmt(totalMFVal)}</div><span class="badge ${totalMFVal>=totalMFInv?'up':'dn'}">${totalMFInv?fmtPct(((totalMFVal-totalMFInv)/totalMFInv)*100):'—'}</span></div>
-    <div class="card"><div class="ct">Fixed Deposits</div><div class="cv">${fmt(totalFD)}</div></div>
-    <div class="card"><div class="ct">Holdings Count</div><div class="cv">${DATA.stocks.length+DATA.mutual_funds.length}</div><span style="color:var(--text3);font-size:.75rem">${DATA.stocks.length} stocks · ${DATA.mutual_funds.length} funds</span></div>
+    ${buildMetricCard({
+      tone:'gold',
+      label:'Stocks Value',
+      value:fmt(totalStockVal),
+      badge: totalStockInv ? fmtPct(((totalStockVal-totalStockInv)/Math.max(totalStockInv,1))*100) : 'Fresh',
+      meta:`${DATA.stocks.length} equity positions tracked across Indian and global holdings.`
+    })}
+    ${buildMetricCard({
+      tone:'green',
+      label:'Mutual Funds',
+      value:fmt(totalMFVal),
+      badge: totalMFInv ? fmtPct(((totalMFVal-totalMFInv)/Math.max(totalMFInv,1))*100) : 'Fresh',
+      meta:`${DATA.mutual_funds.length} fund positions with ${fmt(totalMFInv)} invested capital.`
+    })}
+    ${buildMetricCard({
+      tone:'blue',
+      label:'Fixed Deposits',
+      value:fmt(totalFD),
+      badge: totalFD ? `${DATA.fixed_deposits.length} active` : 'Idle',
+      meta:`Liquid plus locked reserves combine to ${fmt(totalLiquid)} across cash and deposits.`
+    })}
+    ${buildMetricCard({
+      tone:'purple',
+      label:'Holdings Count',
+      value:String(totalHoldings),
+      badge: totalHoldings ? `${DATA.stocks.length} stocks / ${DATA.mutual_funds.length} funds` : 'Start adding',
+      meta:`Monthly flow is ${monthlyFlow>=0?'positive':'negative'} at ${fmt(monthlyFlow)} after expenses.`
+    })}
   `;
 
   // Asset Allocation chart
@@ -1624,9 +1825,27 @@ function renderAccounts(){
   const byType = {};
   DATA.accounts.forEach(a=>{byType[a.type||'Savings']=(byType[a.type||'Savings']||0)+Number(a.balance||0)});
   document.getElementById('accountCards').innerHTML = `
-    <div class="card card-glow"><div class="ct">Total Balance</div><div class="cv gold">${fmt(total)}</div></div>
-    <div class="card"><div class="ct">Accounts</div><div class="cv">${DATA.accounts.length}</div></div>
-    <div class="card"><div class="ct">Fixed Deposits</div><div class="cv">${fmt(DATA.fixed_deposits.reduce((s,x)=>s+Number(x.principal||0),0))}</div></div>
+    ${buildMetricCard({
+      tone:'gold',
+      label:'Total Balance',
+      value:fmt(total),
+      badge: Object.keys(byType).length ? `${Object.keys(byType).length} account types` : 'Start adding',
+      meta:`Core cash across ${DATA.accounts.length} linked bank account${DATA.accounts.length===1?'':'s'}.`
+    })}
+    ${buildMetricCard({
+      tone:'blue',
+      label:'Accounts',
+      value:String(DATA.accounts.length),
+      badge: DATA.accounts.length ? 'Live' : 'Empty',
+      meta:`Savings, salary, and current accounts stay visible in one place.`
+    })}
+    ${buildMetricCard({
+      tone:'purple',
+      label:'Fixed Deposits',
+      value:fmt(DATA.fixed_deposits.reduce((s,x)=>s+Number(x.principal||0),0)),
+      badge: `${DATA.fixed_deposits.length} FD${DATA.fixed_deposits.length===1?'':'s'}`,
+      meta:`Longer-term reserves are separated cleanly from daily liquidity.`
+    })}
   `;
   const tbody = document.getElementById('accBody');
   if(!DATA.accounts.length){tbody.innerHTML='<tr><td colspan="7" class="empty-state">No accounts added yet.</td></tr>';return;}
@@ -1663,10 +1882,34 @@ function renderStocks(){
   const totalPnl = totalCur - totalInv;
 
   document.getElementById('stockSummary').innerHTML = `
-    <div class="card card-glow"><div class="ct">Total Stock Value</div><div class="cv gold">${fmt(totalCur)}</div></div>
-    <div class="card"><div class="ct">Total Invested</div><div class="cv">${fmt(totalInv)}</div></div>
-    <div class="card"><div class="ct">Overall P&L</div><div class="cv ${totalPnl>=0?'pos':'neg'}">${fmt(totalPnl)}</div><span class="badge ${totalPnl>=0?'up':'dn'}">${totalInv?fmtPct((totalPnl/totalInv)*100):'—'}</span></div>
-    <div class="card"><div class="ct">Holdings</div><div class="cv">${DATA.stocks.length}</div><span style="color:var(--text3);font-size:.75rem">${inStocks.length} IN · ${usStocks.length} US · ${Object.keys(brokerMap).length} brokers</span></div>
+    ${buildMetricCard({
+      tone:'gold',
+      label:'Total Stock Value',
+      value:fmt(totalCur),
+      badge: DATA.stocks.length ? 'Live market view' : 'No positions',
+      meta:`Real-time equity exposure across India and US markets.`
+    })}
+    ${buildMetricCard({
+      tone:'blue',
+      label:'Total Invested',
+      value:fmt(totalInv),
+      badge: `${Object.keys(brokerMap).length} broker${Object.keys(brokerMap).length===1?'':'s'}`,
+      meta:`Committed capital spread across ${DATA.stocks.length} stock holding${DATA.stocks.length===1?'':'s'}.`
+    })}
+    ${buildMetricCard({
+      tone: totalPnl >= 0 ? 'green' : 'red',
+      label:'Overall P&L',
+      value:fmt(totalPnl),
+      badge: totalInv ? fmtPct((totalPnl/Math.max(totalInv,1))*100) : 'Flat',
+      meta:`Momentum is ${totalPnl>=0?'positive':'under pressure'} against your invested base.`
+    })}
+    ${buildMetricCard({
+      tone:'purple',
+      label:'Holdings',
+      value:String(DATA.stocks.length),
+      badge:`${inStocks.length} IN / ${usStocks.length} US`,
+      meta:`Coverage across local and global symbols with broker-level sections.`
+    })}
   `;
 
   function stockRowsHtml(stocks, cur='₹'){
@@ -1741,10 +1984,34 @@ function renderMF(){
   const totalSIP = DATA.mutual_funds.filter(m=>m.mode==='SIP').reduce((s,x)=>s+Number(x.sip_amount||0),0);
 
   document.getElementById('mfSummary').innerHTML = `
-    <div class="card card-glow"><div class="ct">Total MF Value</div><div class="cv gold">${fmt(totalCur)}</div></div>
-    <div class="card"><div class="ct">Total Invested</div><div class="cv">${fmt(totalInv)}</div></div>
-    <div class="card"><div class="ct">Returns</div><div class="cv ${totalRet>=0?'pos':'neg'}">${fmt(totalRet)}</div></div>
-    <div class="card"><div class="ct">Monthly SIP</div><div class="cv">${fmt(totalSIP)}</div></div>
+    ${buildMetricCard({
+      tone:'gold',
+      label:'Total MF Value',
+      value:fmt(totalCur),
+      badge: DATA.mutual_funds.length ? `${DATA.mutual_funds.length} funds` : 'No funds',
+      meta:`Fund exposure across category, mode, and return profile.`
+    })}
+    ${buildMetricCard({
+      tone:'cyan',
+      label:'Total Invested',
+      value:fmt(totalInv),
+      badge: totalInv ? 'Capital deployed' : 'Awaiting allocation',
+      meta:`Long-term compounding capital across active SIP and lump-sum positions.`
+    })}
+    ${buildMetricCard({
+      tone: totalRet >= 0 ? 'green' : 'red',
+      label:'Returns',
+      value:fmt(totalRet),
+      badge: totalInv ? fmtPct((totalRet/Math.max(totalInv,1))*100) : 'Flat',
+      meta:`Combined mutual fund performance versus invested cost basis.`
+    })}
+    ${buildMetricCard({
+      tone:'blue',
+      label:'Monthly SIP',
+      value:fmt(totalSIP),
+      badge:`${DATA.mutual_funds.filter(m=>m.mode==='SIP').length} SIP plans`,
+      meta:`Recurring fund commitments stay visible alongside current portfolio value.`
+    })}
   `;
 
   const tbody = document.getElementById('mfBody');
@@ -1789,10 +2056,34 @@ function renderIncome(){
   DATA.income.forEach(i=>{sources[i.source||'Other']=(sources[i.source||'Other']||0)+Number(i.net_amount||0)});
 
   document.getElementById('incomeCards').innerHTML = `
-    <div class="card card-glow"><div class="ct">Total Gross Income</div><div class="cv gold">${fmt(totalGross)}</div></div>
-    <div class="card"><div class="ct">Total Net Income</div><div class="cv" style="color:var(--green)">${fmt(totalNet)}</div></div>
-    <div class="card"><div class="ct">Deductions/Tax</div><div class="cv" style="color:var(--red)">${fmt(totalDed)}</div></div>
-    <div class="card"><div class="ct">Income Entries</div><div class="cv">${DATA.income.length}</div></div>
+    ${buildMetricCard({
+      tone:'gold',
+      label:'Total Gross Income',
+      value:fmt(totalGross),
+      badge: sources && Object.keys(sources).length ? `${Object.keys(sources).length} sources` : 'No income',
+      meta:`Topline earnings across salary, freelance, dividends, and other credits.`
+    })}
+    ${buildMetricCard({
+      tone:'green',
+      label:'Total Net Income',
+      value:fmt(totalNet),
+      badge: totalGross ? `${Math.round((totalNet/Math.max(totalGross,1))*100)}% retained` : 'Take-home',
+      meta:`Clean take-home view after tax and payroll deductions.`
+    })}
+    ${buildMetricCard({
+      tone:'red',
+      label:'Deductions / Tax',
+      value:fmt(totalDed),
+      badge: totalGross ? `${Math.round((totalDed/Math.max(totalGross,1))*100)}% drag` : 'Zero',
+      meta:`Visible drag from statutory deductions and other pay reductions.`
+    })}
+    ${buildMetricCard({
+      tone:'purple',
+      label:'Income Entries',
+      value:String(DATA.income.length),
+      badge: DATA.income.length ? 'Active ledger' : 'Start adding',
+      meta:`Historical income timeline with supporting source and salary structure context.`
+    })}
   `;
 
   // Salary structure
