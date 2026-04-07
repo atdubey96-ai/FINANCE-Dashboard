@@ -663,13 +663,15 @@ const SCAN_KEY = 'wcc_scans';
 const AUTH_SESSION_KEY = 'wcc_auth_unlocked';
 const SYNC_META_KEY = 'wcc_sync_meta';
 const SUPABASE_TABLE = 'dashboard_snapshots';
+const DEFAULT_SUPABASE_URL = 'https://ebjkeknzwvgiarwlddtg.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_ztUEZxH-ACVotIa63Uv89A_U4546dg-';
 
 const DEFAULTS = {
   transactions:[],accounts:[],stocks:[],mutual_funds:[],income:[],salary_structure:[],fixed_deposits:[]
 };
 
 let DATA = {};
-let CONFIG = { supabaseUrl:'', supabaseAnonKey:'', authEmail:'', apiKey:'', mpin:'9816', lastUserId:'' };
+let CONFIG = { supabaseUrl:DEFAULT_SUPABASE_URL, supabaseAnonKey:DEFAULT_SUPABASE_ANON_KEY, authEmail:'', apiKey:'', mpin:'9816', lastUserId:'' };
 let CHARTS = {};
 let currentModal = null;
 let dashboardStarted = false;
@@ -925,7 +927,7 @@ function refreshAuthScreen(){
   const supabaseFields = document.getElementById('authSupabaseFields');
   const confirmField = document.getElementById('authPasswordConfirm');
   const passwordField = document.getElementById('authPassword');
-  const showConnectionFields = !configured || !AUTH_STATE.session;
+  const showConnectionFields = !configured;
 
   if(title && copy && hint && submit && modeBtn && retryBtn && signOutBtn && supabaseFields && confirmField && passwordField){
     supabaseFields.style.display = showConnectionFields ? 'flex' : 'none';
@@ -1165,8 +1167,8 @@ function saveData(options={}){
 
 function loadConfig(){
   const saved = JSON.parse(localStorage.getItem(CFG_KEY)||'null') || {};
-  CONFIG.supabaseUrl = normalizeProjectUrl(saved.supabaseUrl || '');
-  CONFIG.supabaseAnonKey = saved.supabaseAnonKey || saved.supabaseKey || '';
+  CONFIG.supabaseUrl = normalizeProjectUrl(saved.supabaseUrl || DEFAULT_SUPABASE_URL);
+  CONFIG.supabaseAnonKey = saved.supabaseAnonKey || saved.supabaseKey || DEFAULT_SUPABASE_ANON_KEY;
   CONFIG.authEmail = saved.authEmail || '';
   CONFIG.apiKey = saved.apiKey || '';
   CONFIG.mpin = saved.mpin || '9816';
