@@ -469,9 +469,9 @@ body.auth-ready .auth-screen{display:none}
     <div>
       <div class="setting-card">
         <h4>☁️ Supabase Backend</h4>
-        <p>Supabase now handles sign-in and secure per-account syncing. Paste your project URL and publishable key here, then use the same account on every device.</p>
-        <div class="fg"><label>Project URL</label><input type="url" id="cfgSupabaseURL" placeholder="https://your-project.supabase.co"></div>
-        <div class="fg"><label>Publishable / Anon Key</label><input type="password" id="cfgSupabaseKey" placeholder="sb_publishable_... or anon key"></div>
+        <p>Supabase now handles sign-in and secure per-account syncing. This deployment has the project URL and publishable key built in, so you only need the same account on every device.</p>
+        <div class="fg"><label>Project URL</label><input type="url" id="cfgSupabaseURL" placeholder="https://your-project.supabase.co" readonly style="opacity:.75;cursor:not-allowed" title="Built into this deployment"></div>
+        <div class="fg"><label>Publishable / Anon Key</label><input type="password" id="cfgSupabaseKey" placeholder="sb_publishable_... or anon key" readonly style="opacity:.75;cursor:not-allowed" title="Built into this deployment"></div>
         <div style="display:flex;gap:.5rem;align-items:center">
           <button class="btn btn-gold btn-sm" onclick="saveSettings()">Save Settings</button>
           <button class="btn btn-outline btn-sm" onclick="testSupabaseConnection()">Test Connection</button>
@@ -786,8 +786,8 @@ function clearLocalDashboardCache(){
 
 function applyProjectSettings(url, key){
   const hadProject = isSupabaseConfigured();
-  const nextUrl = normalizeProjectUrl(url);
-  const nextKey = String(key || '').trim();
+  const nextUrl = DEFAULT_SUPABASE_URL;
+  const nextKey = DEFAULT_SUPABASE_ANON_KEY;
   const projectChanged = nextUrl !== CONFIG.supabaseUrl || nextKey !== CONFIG.supabaseAnonKey;
   CONFIG.supabaseUrl = nextUrl;
   CONFIG.supabaseAnonKey = nextKey;
@@ -807,14 +807,10 @@ function applyProjectSettings(url, key){
 }
 
 function captureSupabaseSettingsFromInputs({ requireValues=false } = {}){
-  const authUrl = normalizeProjectUrl(document.getElementById('authSupabaseUrl')?.value || '');
-  const authKey = String(document.getElementById('authSupabaseKey')?.value || '').trim();
-  const cfgUrl = normalizeProjectUrl(document.getElementById('cfgSupabaseURL')?.value || '');
-  const cfgKey = String(document.getElementById('cfgSupabaseKey')?.value || '').trim();
-  const nextUrl = authUrl || cfgUrl || CONFIG.supabaseUrl || '';
-  const nextKey = authKey || cfgKey || CONFIG.supabaseAnonKey || '';
+  const nextUrl = CONFIG.supabaseUrl || DEFAULT_SUPABASE_URL;
+  const nextKey = CONFIG.supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
   if(requireValues && (!nextUrl || !nextKey)){
-    throw new Error('Enter your Supabase project URL and publishable key first.');
+    throw new Error('This deployment is missing its built-in Supabase configuration.');
   }
   return applyProjectSettings(nextUrl, nextKey);
 }
@@ -1167,8 +1163,8 @@ function saveData(options={}){
 
 function loadConfig(){
   const saved = JSON.parse(localStorage.getItem(CFG_KEY)||'null') || {};
-  CONFIG.supabaseUrl = normalizeProjectUrl(saved.supabaseUrl || DEFAULT_SUPABASE_URL);
-  CONFIG.supabaseAnonKey = saved.supabaseAnonKey || saved.supabaseKey || DEFAULT_SUPABASE_ANON_KEY;
+  CONFIG.supabaseUrl = DEFAULT_SUPABASE_URL;
+  CONFIG.supabaseAnonKey = DEFAULT_SUPABASE_ANON_KEY;
   CONFIG.authEmail = saved.authEmail || '';
   CONFIG.apiKey = saved.apiKey || '';
   CONFIG.mpin = saved.mpin || '9816';
