@@ -469,9 +469,9 @@ body.auth-ready .auth-screen{display:none}
     <div>
       <div class="setting-card">
         <h4>☁️ Supabase Backend</h4>
-        <p>Supabase now handles sign-in and secure per-account syncing. This deployment has the project URL and publishable key built in, so you only need the same account on every device.</p>
-        <div class="fg"><label>Project URL</label><input type="url" id="cfgSupabaseURL" placeholder="https://your-project.supabase.co" readonly style="opacity:.75;cursor:not-allowed" title="Built into this deployment"></div>
-        <div class="fg"><label>Publishable / Anon Key</label><input type="password" id="cfgSupabaseKey" placeholder="sb_publishable_... or anon key" readonly style="opacity:.75;cursor:not-allowed" title="Built into this deployment"></div>
+        <p>Supabase now handles sign-in and secure per-account syncing through a built-in Cloudflare proxy, so you only need the same account on every device.</p>
+        <div class="fg"><label>Secure Sync URL</label><input type="url" id="cfgSupabaseURL" placeholder="Built into this deployment" readonly style="opacity:.75;cursor:not-allowed" title="Built into this deployment"></div>
+        <div class="fg"><label>Publishable Key</label><input type="password" id="cfgSupabaseKey" placeholder="Built into this deployment" readonly style="opacity:.75;cursor:not-allowed" title="Built into this deployment"></div>
         <div style="display:flex;gap:.5rem;align-items:center">
           <button class="btn btn-gold btn-sm" onclick="saveSettings()">Save Settings</button>
           <button class="btn btn-outline btn-sm" onclick="testSupabaseConnection()">Test Connection</button>
@@ -512,7 +512,7 @@ body.auth-ready .auth-screen{display:none}
     <div>
       <div class="setting-card">
         <h4>📋 Setup Instructions</h4>
-        <p>1. Create a Supabase project<br>2. Run the provided <b>supabase_setup.sql</b> in the SQL editor<br>3. Copy your Project URL and Publishable / Anon key into this app<br>4. Create one dashboard account with email + password<br>5. Sign in with that same account on every device</p>
+        <p>1. Create a Supabase project<br>2. Run the provided <b>supabase_setup.sql</b> in the SQL editor<br>3. Open this Vercel URL on every device<br>4. Create one dashboard account with email + password<br>5. Sign in with that same account on every device</p>
       </div>
       <div class="setting-card">
         <h4>💾 Local Data</h4>
@@ -663,7 +663,7 @@ const SCAN_KEY = 'wcc_scans';
 const AUTH_SESSION_KEY = 'wcc_auth_unlocked';
 const SYNC_META_KEY = 'wcc_sync_meta';
 const SUPABASE_TABLE = 'dashboard_snapshots';
-const DEFAULT_SUPABASE_URL = 'https://ebjkeknzwvgiarwlddtg.supabase.co';
+const DEFAULT_SUPABASE_URL = 'https://finance-supabase-proxy.iocscadasync.workers.dev';
 const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_ztUEZxH-ACVotIa63Uv89A_U4546dg-';
 
 const DEFAULTS = {
@@ -810,13 +810,13 @@ function captureSupabaseSettingsFromInputs({ requireValues=false } = {}){
   const nextUrl = CONFIG.supabaseUrl || DEFAULT_SUPABASE_URL;
   const nextKey = CONFIG.supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
   if(requireValues && (!nextUrl || !nextKey)){
-    throw new Error('This deployment is missing its built-in Supabase configuration.');
+    throw new Error('This deployment is missing its built-in secure sync configuration.');
   }
   return applyProjectSettings(nextUrl, nextKey);
 }
 
 function ensureSupabaseClient(){
-  if(!isSupabaseConfigured()) throw new Error('Enter your Supabase project URL and publishable key first.');
+  if(!isSupabaseConfigured()) throw new Error('This deployment is missing its built-in secure sync connection.');
   if(!window.supabase?.createClient) throw new Error('Supabase client library did not load. Refresh and try again.');
   const configKey = `${CONFIG.supabaseUrl}::${CONFIG.supabaseAnonKey}`;
   if(SUPABASE_CLIENT && SUPABASE_CLIENT_CONFIG_KEY === configKey) return SUPABASE_CLIENT;
@@ -935,7 +935,7 @@ function refreshAuthScreen(){
 
     if(!configured){
       title.textContent = 'Connect your secure dashboard';
-      copy.textContent = 'Paste your Supabase project URL and publishable key, then create or sign in to your dashboard account.';
+      copy.textContent = 'Reconnect secure sync, then create or sign in to your dashboard account.';
       hint.textContent = 'Supabase Auth protects access. Your dashboard sync stays private to your signed-in account.';
     } else if(creating){
       title.textContent = 'Create your dashboard account';
