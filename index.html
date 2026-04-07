@@ -130,6 +130,10 @@ tr.clickable:hover td{color:var(--text);background:rgba(212,168,83,.03)}
 .modal-close:hover{background:var(--red);color:#fff}
 .modal-body{padding:1.5rem}
 .modal-foot{display:flex;justify-content:flex-end;gap:.5rem;padding:1rem 1.5rem;border-top:1px solid var(--border)}
+.pdf-lock-copy{font-size:.82rem;color:var(--text2);line-height:1.55;margin-bottom:1rem}
+.pdf-lock-meta{display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;padding:.7rem .85rem;background:var(--bg3);border:1px solid var(--border);border-radius:12px}
+.pdf-lock-badge{width:36px;height:36px;border-radius:10px;background:rgba(212,168,83,.16);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--gold)}
+.pdf-lock-error{min-height:1rem;color:var(--red);font-size:.75rem;margin-top:.3rem}
 
 /* ====== FORM ====== */
 .fg{margin-bottom:1rem}
@@ -511,7 +515,7 @@ body.auth-ready .auth-screen{display:none}
 <!-- ============ SCANNER ============ -->
 <div class="tc" id="tc-scanner">
   <h2 class="stitle" style="margin-top:0">Statement Scanner</h2>
-  <p style="color:var(--text2);font-size:.82rem;margin-bottom:1rem">Upload any bank statement, credit card bill, payslip, or investment report — as an image <strong style="color:var(--text)">or PDF</strong>. AI extracts all transactions; you choose where each goes.</p>
+  <p style="color:var(--text2);font-size:.82rem;margin-bottom:1rem">Upload any bank statement, credit card bill, payslip, or investment report — as an image <strong style="color:var(--text)">or PDF</strong>. If the PDF is password-protected, the scanner will ask for the password first, unlock it in-browser, then extract the data.</p>
   
   <div class="drop-zone" id="dropZone">
     <input type="file" id="scanInput" accept="image/*,.pdf,application/pdf" multiple>
@@ -590,9 +594,11 @@ body.auth-ready .auth-screen{display:none}
       </div>
       <div class="setting-card">
         <h4>🤖 Anthropic API (Statement Scanner)</h4>
-        <p>Enter your Anthropic API key to enable AI-powered statement scanning. Your key is stored locally and never shared.</p>
-        <div class="fg"><label>API Key</label><input type="password" id="cfgAPIKey" placeholder="sk-ant-..."></div>
-        <button class="btn btn-gold btn-sm" onclick="saveSettings()">Save Settings</button>
+        <p>Scanner access is built into this deployment through the secure Cloudflare Worker. Your Claude key stays server-side and works across every device without re-entering it.</p>
+        <div class="fg"><label>Scanner Backend</label><input type="text" id="cfgAPIKey" value="Connected through secure worker" readonly style="opacity:.75;cursor:not-allowed" title="Stored securely in Cloudflare"></div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+          <span class="status-box status-ok">Scanner ready on every device</span>
+        </div>
       </div>
     </div>
     <div>
@@ -758,6 +764,36 @@ body.auth-ready .auth-screen{display:none}
   </div>
 </div>
 
+<div class="modal-overlay" id="pdfPasswordOverlay" onclick="if(event.target===this)cancelPdfPasswordPrompt()">
+  <div class="modal" style="max-width:430px">
+    <div class="modal-hdr">
+      <h3 id="pdfPasswordTitle">Unlock PDF</h3>
+      <button class="modal-close" type="button" onclick="cancelPdfPasswordPrompt()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="pdf-lock-meta">
+        <div class="pdf-lock-badge">🔐</div>
+        <div>
+          <div style="font-weight:600;font-size:.9rem;color:var(--text)" id="pdfPasswordFileName">Protected statement.pdf</div>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:2px">Encrypted PDF detected</div>
+        </div>
+      </div>
+      <p class="pdf-lock-copy" id="pdfPasswordCopy">Enter the PDF password to unlock this statement for scanning.</p>
+      <form onsubmit="event.preventDefault();submitPdfPasswordPrompt()">
+        <div class="fg" style="margin-bottom:.45rem">
+          <label>PDF Password</label>
+          <input type="password" id="pdfPasswordInput" autocomplete="current-password" placeholder="Enter PDF password">
+        </div>
+        <div class="pdf-lock-error" id="pdfPasswordError"></div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline btn-sm" type="button" onclick="cancelPdfPasswordPrompt()">Cancel</button>
+      <button class="btn btn-gold btn-sm" type="button" onclick="submitPdfPasswordPrompt()">Unlock PDF</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ DETAIL PANEL ============ -->
 <div class="detail-panel" id="detailPanel">
   <div class="dp-hdr"><h3 id="dpTitle">Details</h3><button class="modal-close" onclick="closeDetail()">×</button></div>
@@ -783,6 +819,7 @@ const INSTALL_BANNER_KEY = 'wcc_install_banner_dismissed';
 const SUPABASE_TABLE = 'dashboard_snapshots';
 const DEFAULT_SUPABASE_URL = 'https://finance-supabase-proxy.iocscadasync.workers.dev';
 const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_ztUEZxH-ACVotIa63Uv89A_U4546dg-';
+const SCANNER_PROXY_PATH = '/anthropic/v1/messages';
 const MOBILE_NAV_GROUPS = {
   overview:'home',
   transactions:'activity',
@@ -811,6 +848,7 @@ let autoSyncTimer = null;
 let remotePollTimer = null;
 let CURRENT_TAB = 'overview';
 let PWA_STATE = { deferredPrompt:null, canInstall:false, installed:false, swRegistered:false };
+let PDF_PASSWORD_PROMPT = { resolve:null };
 
 function cloneDefaults(){
   return JSON.parse(JSON.stringify(DEFAULTS));
@@ -1298,14 +1336,16 @@ function loadConfig(){
   CONFIG.supabaseUrl = DEFAULT_SUPABASE_URL;
   CONFIG.supabaseAnonKey = DEFAULT_SUPABASE_ANON_KEY;
   CONFIG.authEmail = saved.authEmail || '';
-  CONFIG.apiKey = saved.apiKey || '';
+  CONFIG.apiKey = '';
   CONFIG.mpin = saved.mpin || '9816';
   CONFIG.lastUserId = saved.lastUserId || '';
   AO.mpin = CONFIG.mpin;
 }
 
 function saveConfig(){
-  localStorage.setItem(CFG_KEY, JSON.stringify(CONFIG));
+  const persisted = { ...CONFIG, apiKey:'' };
+  CONFIG.apiKey = '';
+  localStorage.setItem(CFG_KEY, JSON.stringify(persisted));
 }
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
@@ -2072,8 +2112,86 @@ async function testSupabaseConnection(){
   }
 }
 
+function getScannerProxyUrl(){
+  return new URL(SCANNER_PROXY_PATH, CONFIG.supabaseUrl || DEFAULT_SUPABASE_URL).toString();
+}
+
+function cleanupPdfPasswordPrompt(){
+  PDF_PASSWORD_PROMPT.resolve = null;
+}
+
+function cancelPdfPasswordPrompt(){
+  const resolve = PDF_PASSWORD_PROMPT.resolve;
+  cleanupPdfPasswordPrompt();
+  document.getElementById('pdfPasswordOverlay')?.classList.remove('open');
+  document.getElementById('pdfPasswordInput') && (document.getElementById('pdfPasswordInput').value = '');
+  document.getElementById('pdfPasswordError') && (document.getElementById('pdfPasswordError').textContent = '');
+  if(resolve) resolve(null);
+}
+
+function submitPdfPasswordPrompt(){
+  const input = document.getElementById('pdfPasswordInput');
+  const error = document.getElementById('pdfPasswordError');
+  const password = String(input?.value || '');
+  if(!password){
+    if(error) error.textContent = 'Enter the PDF password to continue.';
+    input?.focus();
+    return;
+  }
+  const resolve = PDF_PASSWORD_PROMPT.resolve;
+  cleanupPdfPasswordPrompt();
+  document.getElementById('pdfPasswordOverlay')?.classList.remove('open');
+  if(input) input.value = '';
+  if(error) error.textContent = '';
+  if(resolve) resolve(password);
+}
+
+function requestPdfPassword({ fileName='', incorrect=false } = {}){
+  const title = document.getElementById('pdfPasswordTitle');
+  const copy = document.getElementById('pdfPasswordCopy');
+  const file = document.getElementById('pdfPasswordFileName');
+  const input = document.getElementById('pdfPasswordInput');
+  const error = document.getElementById('pdfPasswordError');
+  const overlay = document.getElementById('pdfPasswordOverlay');
+  if(!title || !copy || !file || !input || !error || !overlay){
+    return Promise.resolve(window.prompt(`Enter the PDF password for ${fileName || 'this statement'}`) || null);
+  }
+
+  title.textContent = incorrect ? 'Incorrect PDF Password' : 'Unlock PDF';
+  copy.textContent = incorrect
+    ? 'That password did not unlock this statement. Enter the correct password to continue scanning.'
+    : 'This PDF is protected. Enter the password to unlock it for scanning.';
+  file.textContent = fileName || 'Protected statement.pdf';
+  input.value = '';
+  error.textContent = '';
+  overlay.classList.add('open');
+  setTimeout(()=>input.focus(), 50);
+
+  return new Promise((resolve)=>{
+    PDF_PASSWORD_PROMPT.resolve = resolve;
+  });
+}
+
+async function requestScannerAnalysis(contents, promptText){
+  const response = await fetch(getScannerProxyUrl(), {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'anthropic-version':'2023-06-01'
+    },
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:8000,
+      messages:[{role:'user', content:[...contents, { type:'text', text: promptText }]}]
+    })
+  });
+  const data = await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(data.error?.message || data.error || `Scanner request failed (${response.status})`);
+  return data;
+}
+
 // ═══════════════════════════════════════════
-//  STATEMENT SCANNER (Anthropic API) — Enhanced
+//  STATEMENT SCANNER (Cloudflare + Anthropic) — Enhanced
 // ═══════════════════════════════════════════
 const dropZone = document.getElementById('dropZone');
 const scanInput = document.getElementById('scanInput');
@@ -2155,7 +2273,36 @@ function ensurePdfJsReady(){
 async function renderPdfPagesForScan(file, maxPages=6){
   ensurePdfJsReady();
   const buffer = await file.arrayBuffer();
-  const pdf = await window.pdfjsLib.getDocument({data:buffer}).promise;
+  const PasswordResponses = window.pdfjsLib.PasswordResponses || {};
+  const pdf = await new Promise((resolve, reject)=>{
+    let settled = false;
+    const finishResolve = (value)=>{ if(settled) return; settled = true; resolve(value); };
+    const finishReject = (error)=>{ if(settled) return; settled = true; reject(error); };
+    const loadingTask = window.pdfjsLib.getDocument({ data: buffer });
+
+    loadingTask.onPassword = (updatePassword, reason)=>{
+      Promise.resolve(
+        requestPdfPassword({
+          fileName: file.name,
+          incorrect: reason === PasswordResponses.INCORRECT_PASSWORD
+        })
+      ).then((password)=>{
+        if(password === null){
+          try{ loadingTask.destroy(); }catch(_){}
+          finishReject(new Error('PDF unlock cancelled.'));
+          return;
+        }
+        updatePassword(password);
+      }).catch((error)=>{
+        try{ loadingTask.destroy(); }catch(_){}
+        finishReject(error instanceof Error ? error : new Error(String(error)));
+      });
+    };
+
+    loadingTask.promise.then(finishResolve).catch((error)=>{
+      finishReject(error instanceof Error ? error : new Error(String(error)));
+    });
+  });
   const pageCount = pdf.numPages;
   const contents = [];
   const previewThumbs = [];
@@ -2236,7 +2383,6 @@ function renderScanPreview({isPDF, file, dataUrl='', previewThumbs=[], pageCount
 
 async function handleScanFiles(files){
   if(!files.length) return;
-  if(!CONFIG.apiKey){toast('Set your Anthropic API key in Settings first','err');switchTab('settings');return;}
 
   for(const file of files){
     const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
@@ -2375,17 +2521,7 @@ Rules:
 - For receipts/bills, create one transaction entry`;
 
       try{
-        const response = await fetch('https://api.anthropic.com/v1/messages',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':CONFIG.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-          body:JSON.stringify({
-            model:'claude-sonnet-4-20250514',
-            max_tokens:8000,
-            messages:[{role:'user',content:[...finalContents,{type:'text', text: promptText}]}]
-          })
-        });
-        const data = await response.json();
-        if(!response.ok) throw new Error(data.error?.message || `Scanner request failed (${response.status})`);
+        const data = await requestScannerAnalysis(finalContents, promptText);
         const text = data.content?.map(c=>c.text||'').join('')||'';
         const clean = text.replace(/```json|```/g,'').trim();
         let parsed;
@@ -3279,7 +3415,7 @@ function renderScanHistory(){
 function loadSettingsUI(){
   document.getElementById('cfgSupabaseURL').value = CONFIG.supabaseUrl||'';
   document.getElementById('cfgSupabaseKey').value = CONFIG.supabaseAnonKey||'';
-  document.getElementById('cfgAPIKey').value = CONFIG.apiKey||'';
+  document.getElementById('cfgAPIKey').value = 'Connected through secure worker';
   const mpinEl = document.getElementById('cfgMPIN');
   if (mpinEl) mpinEl.value = CONFIG.mpin ? '••••' : '';
   const userStatus = document.getElementById('supabaseUserStatus');
@@ -3305,7 +3441,7 @@ function saveSettings(){
     document.getElementById('cfgSupabaseURL').value.trim(),
     document.getElementById('cfgSupabaseKey').value.trim()
   );
-  CONFIG.apiKey = document.getElementById('cfgAPIKey').value.trim();
+  CONFIG.apiKey = '';
   saveConfig();
   refreshAuthScreen();
   if(projectChanged){
