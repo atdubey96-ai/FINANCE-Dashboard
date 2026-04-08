@@ -71,6 +71,7 @@ a{color:var(--gold);text-decoration:none}
 .g{display:grid;gap:1rem}
 .g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
 .g23{grid-template-columns:2fr 1fr}.g32{grid-template-columns:3fr 2fr}
+#stockSummary,#mfSummary{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 @media(max-width:1100px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){.g2,.g3,.g4,.g23,.g32{grid-template-columns:1fr}}
 
@@ -133,6 +134,15 @@ tr.clickable:hover td{color:var(--text);background:rgba(212,168,83,.03)}
 .install-btn{border-color:rgba(212,168,83,.28);color:var(--gold)}
 .install-btn.ready{background:var(--golddim);box-shadow:0 8px 24px rgba(212,168,83,.12)}
 .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.portfolio-control{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.portfolio-control-copy{display:grid;gap:.3rem;max-width:620px}
+.portfolio-control-copy p{font-size:.76rem;color:var(--text2);line-height:1.55}
+.portfolio-control-actions{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+.portfolio-filter-select{min-width:180px;padding:.48rem .7rem;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:.8rem}
+.portfolio-filter-select:focus{outline:none;border-color:var(--gold)}
+.section-kpis{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.74rem;color:var(--text3)}
+.section-kpis strong{color:var(--text)}
+.inline-broker-pill{display:inline-flex;align-items:center;padding:.14rem .48rem;border-radius:999px;background:rgba(167,139,250,.12);color:var(--purple);font-size:.65rem;font-weight:600}
 
 /* ====== MODAL ====== */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem}
@@ -365,6 +375,9 @@ tr.clickable:hover td{color:var(--text);background:rgba(212,168,83,.03)}
   .hero-action-btn{min-width:0;flex:1}
   .hero-alloc-row{grid-template-columns:78px 1fr auto}
   .quick-list-grid{grid-template-columns:1fr}
+  .portfolio-control-actions{width:100%}
+  .portfolio-filter-select{flex:1;min-width:0}
+  .section-kpis{gap:.55rem}
 }
 
 @media(min-width:861px){
@@ -585,14 +598,15 @@ body.auth-ready .auth-screen{display:none}
     </div>
   </div>
   <div class="g g4" id="stockSummary"></div>
-  <div class="stitle">Indian Stocks (NSE/BSE)</div>
+  <div class="card" id="stockControlBar" style="margin-top:1rem"></div>
+  <div class="stitle">All Indian Stocks (NSE/BSE)</div>
   <div class="card" id="stockINDefaultSection"><div class="tw"><table><thead><tr>
-    <th>Ticker</th><th>Company</th><th>Sector</th><th>Qty</th><th>Avg</th><th>CMP</th><th>Invested</th><th>Current</th><th>P&L</th><th>%</th><th></th>
+    <th>Ticker</th><th>Company</th><th>Broker</th><th>Sector</th><th>Qty</th><th>Avg</th><th>CMP</th><th>Invested</th><th>Current</th><th>P&L</th><th>%</th><th></th>
   </tr></thead><tbody id="stockINBody"></tbody></table></div></div>
   <div id="stockINBrokerSections"></div>
   <div class="stitle">US Stocks (NYSE/NASDAQ)</div>
   <div class="card"><div class="tw"><table><thead><tr>
-    <th>Ticker</th><th>Company</th><th>Sector</th><th>Qty</th><th>Avg</th><th>CMP</th><th>Invested</th><th>Current</th><th>P&L</th><th>%</th><th></th>
+    <th>Ticker</th><th>Company</th><th>Broker</th><th>Sector</th><th>Qty</th><th>Avg</th><th>CMP</th><th>Invested</th><th>Current</th><th>P&L</th><th>%</th><th></th>
   </tr></thead><tbody id="stockUSBody"></tbody></table></div></div>
   <div class="g g2" style="margin-top:1rem">
     <div class="card"><div class="ct">Sector Split — India</div><div class="chw h250"><canvas id="chSectorIN"></canvas></div></div>
@@ -607,9 +621,12 @@ body.auth-ready .auth-screen{display:none}
     <button class="btn btn-gold btn-sm" onclick="openModal('mf')">+ Add Fund</button>
   </div>
   <div class="g g4" id="mfSummary"></div>
+  <div class="card" id="mfControlBar" style="margin-top:1rem"></div>
+  <div class="stitle">All Mutual Funds</div>
   <div class="card" style="margin-top:1rem"><div class="tw"><table><thead><tr>
-    <th>Fund</th><th>House</th><th>Category</th><th>Mode</th><th>SIP</th><th>Invested</th><th>Current</th><th>Returns</th><th>XIRR</th><th></th>
+    <th>Fund</th><th>House</th><th>Broker / Platform</th><th>Category</th><th>Mode</th><th>SIP</th><th>Invested</th><th>Current</th><th>Returns</th><th>XIRR</th><th></th>
   </tr></thead><tbody id="mfBody"></tbody></table></div></div>
+  <div id="mfPlatformSections"></div>
   <div class="g g2" style="margin-top:1rem">
     <div class="card"><div class="ct">Category Split</div><div class="chw h250"><canvas id="chMFCat"></canvas></div></div>
     <div class="card"><div class="ct">Invested vs Current</div><div class="chw h250"><canvas id="chMFBar"></canvas></div></div>
@@ -871,6 +888,12 @@ body.auth-ready .auth-screen{display:none}
           </div>
         </div>
 
+        <div class="fg">
+          <label>Broker / Platform</label>
+          <input type="text" id="stkBroker" list="stkBrokerList" placeholder="Choose or type a broker">
+          <datalist id="stkBrokerList"></datalist>
+        </div>
+
         <!-- Live P&L preview -->
         <div id="stkPnlPreview" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;margin-top:.25rem">
           <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:.5rem">Preview</div>
@@ -988,6 +1011,14 @@ const DEFAULT_QUICK_LISTS = {
     'Axis Ace Credit Card',
     'Amex Membership Rewards'
   ],
+  investment_platforms:[
+    'Zerodha',
+    'Groww',
+    'Upstox',
+    'Angel One',
+    'ICICI Direct',
+    'HDFC Securities'
+  ],
   categories:{
     expense:[
       'Groceries',
@@ -1083,6 +1114,7 @@ function normalizeQuickLists(raw){
     accounts: sanitizeTextList(raw?.accounts, base.accounts),
     payment_modes: sanitizeTextList(raw?.payment_modes, base.payment_modes, { allowEmpty:false }),
     cards: sanitizeTextList(raw?.cards, base.cards),
+    investment_platforms: sanitizeTextList(raw?.investment_platforms, base.investment_platforms),
     categories: {
       expense: sanitizeTextList(raw?.categories?.expense, base.categories.expense),
       income: sanitizeTextList(raw?.categories?.income, base.categories.income),
@@ -2051,6 +2083,41 @@ function renderAccounts(){
   </tr>`).join('');
 }
 
+function getStockBrokerName(stock){
+  return String(stock?.broker || '').trim() || 'Unassigned';
+}
+
+function getFundPlatformName(fund){
+  return String(fund?.platform || fund?.broker || '').trim() || 'Direct / Unassigned';
+}
+
+function buildFilterOptions(options=[], selected='all', allLabel='All'){
+  return [`<option value="all" ${selected==='all'?'selected':''}>${allLabel}</option>`]
+    .concat(options.map((option)=>`<option value="${escapeHtml(option)}" ${selected===option?'selected':''}>${escapeHtml(option)}</option>`))
+    .join('');
+}
+
+function buildPortfolioControlCard({ title, copy, filterId, filterLabel, filterOptions=[], selectedFilter='all', viewId, selectedView='both', changeHandler }){
+  return `
+    <div class="portfolio-control">
+      <div class="portfolio-control-copy">
+        <div class="ct" style="margin:0">${title}</div>
+        <p>${copy}</p>
+      </div>
+      <div class="portfolio-control-actions">
+        <select id="${filterId}" class="portfolio-filter-select" onchange="${changeHandler}()">
+          ${buildFilterOptions(filterOptions, selectedFilter, `${filterLabel}: All`)}
+        </select>
+        <select id="${viewId}" class="portfolio-filter-select" onchange="${changeHandler}()">
+          <option value="combined" ${selectedView==='combined'?'selected':''}>Combined View</option>
+          <option value="sections" ${selectedView==='sections'?'selected':''}>Section View</option>
+          <option value="both" ${selectedView==='both'?'selected':''}>Combined + Sections</option>
+        </select>
+      </div>
+    </div>
+  `;
+}
+
 // ═══════════════════════════════════════════
 //  STOCKS
 // ═══════════════════════════════════════════
@@ -2058,13 +2125,37 @@ function renderStocks(){
   const inStocks = DATA.stocks.filter(s=>s.market==='IN'||s.market==='NSE'||s.market==='BSE'||s.currency==='INR');
   const usStocks = DATA.stocks.filter(s=>s.market==='US'||s.market==='NYSE'||s.market==='NASDAQ'||s.currency==='USD');
   const brokerMap = {};
-  inStocks.forEach(s=>{
-    const broker = s.broker || 'Other Broker';
-    (brokerMap[broker] ||= []).push(s);
+  inStocks.forEach((stock)=>{
+    const broker = getStockBrokerName(stock);
+    (brokerMap[broker] ||= []).push(stock);
   });
+  const brokerEntries = Object.entries(brokerMap).sort((a,b)=>a[0].localeCompare(b[0]));
+  const namedBrokers = [...new Set(inStocks.map(getStockBrokerName).filter((name)=>name !== 'Unassigned'))];
+  const hasBrokerSections = namedBrokers.length > 0;
+  const currentBrokerFilter = document.getElementById('stockBrokerFilter')?.value || 'all';
+  const currentBrokerView = document.getElementById('stockBrokerView')?.value || (hasBrokerSections ? 'both' : 'combined');
+  const filteredInStocks = currentBrokerFilter === 'all'
+    ? inStocks
+    : inStocks.filter((stock)=>getStockBrokerName(stock) === currentBrokerFilter);
+  const filteredBrokerEntries = brokerEntries.filter(([broker])=>currentBrokerFilter === 'all' || broker === currentBrokerFilter);
   const totalInv = DATA.stocks.reduce((s,x)=>s+Number(x.invested||0),0);
   const totalCur = DATA.stocks.reduce((s,x)=>s+Number(x.current_value||0),0);
   const totalPnl = totalCur - totalInv;
+
+  const controlCopy = hasBrokerSections
+    ? 'Switch between one combined Indian stock book and broker-wise sections. The broker filter also narrows the combined table for quick review.'
+    : 'Add broker names while saving holdings to unlock broker-wise sections, filters, and cleaner separation of your Indian equity book.';
+  document.getElementById('stockControlBar').innerHTML = buildPortfolioControlCard({
+    title:'Broker Filters',
+    copy:controlCopy,
+    filterId:'stockBrokerFilter',
+    filterLabel:'Broker',
+    filterOptions:namedBrokers,
+    selectedFilter:currentBrokerFilter,
+    viewId:'stockBrokerView',
+    selectedView:currentBrokerView,
+    changeHandler:'renderStocks'
+  });
 
   document.getElementById('stockSummary').innerHTML = `
     ${buildMetricCard({
@@ -2078,7 +2169,7 @@ function renderStocks(){
       tone:'blue',
       label:'Total Invested',
       value:fmt(totalInv),
-      badge: `${Object.keys(brokerMap).length} broker${Object.keys(brokerMap).length===1?'':'s'}`,
+      badge: namedBrokers.length ? `${namedBrokers.length} broker${namedBrokers.length===1?'':'s'}` : 'Add broker names',
       meta:`Committed capital spread across ${DATA.stocks.length} stock holding${DATA.stocks.length===1?'':'s'}.`
     })}
     ${buildMetricCard({
@@ -2098,17 +2189,18 @@ function renderStocks(){
   `;
 
   function stockRowsHtml(stocks, cur='₹'){
-    if(!stocks.length) return '<tr><td colspan="11" class="empty-state">No stocks added.</td></tr>';
-    return stocks.map(s=>{
-      const pnl = Number(s.pnl||0);
-      const rowCur = cur==='auto' ? ((s.market==='NYSE'||s.market==='NASDAQ'||s.currency==='USD') ? '$' : '₹') : cur;
-      return `<tr class="clickable" onclick="showDetail('stocks','${s.id}')">
-        <td class="tk">${s.ticker||'—'}</td><td>${s.company||'—'}</td><td>${s.sector||'—'}</td>
-        <td>${s.qty||0}</td><td>${rowCur}${Number(s.avg_price||0).toLocaleString()}</td><td>${rowCur}${Number(s.current_price||0).toLocaleString()}</td>
-        <td>${rowCur}${Number(s.invested||0).toLocaleString()}</td><td>${rowCur}${Number(s.current_value||0).toLocaleString()}</td>
+    if(!stocks.length) return '<tr><td colspan="12" class="empty-state">No stocks found for this broker view yet.</td></tr>';
+    return stocks.map((stock)=>{
+      const pnl = Number(stock.pnl||0);
+      const rowCur = cur==='auto' ? ((stock.market==='NYSE'||stock.market==='NASDAQ'||stock.currency==='USD') ? '$' : '₹') : cur;
+      const broker = getStockBrokerName(stock);
+      return `<tr class="clickable" onclick="showDetail('stocks','${stock.id}')">
+        <td class="tk">${stock.ticker||'—'}</td><td>${stock.company||'—'}</td><td><span class="inline-broker-pill">${broker}</span></td><td>${stock.sector||'—'}</td>
+        <td>${stock.qty||0}</td><td>${rowCur}${Number(stock.avg_price||0).toLocaleString()}</td><td>${rowCur}${Number(stock.current_price||0).toLocaleString()}</td>
+        <td>${rowCur}${Number(stock.invested||0).toLocaleString()}</td><td>${rowCur}${Number(stock.current_value||0).toLocaleString()}</td>
         <td class="${pnl>=0?'pos':'neg'}">${pnl>=0?'+':''}${rowCur}${Math.abs(pnl).toLocaleString()}</td>
-        <td class="${pnl>=0?'pos':'neg'}">${s.pnl_pct||'—'}%</td>
-        <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editItem('stocks','${s.id}')">✎</button></td>
+        <td class="${pnl>=0?'pos':'neg'}">${stock.pnl_pct||'—'}%</td>
+        <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editItem('stocks','${stock.id}')">✎</button></td>
       </tr>`;
     }).join('');
   }
@@ -2117,9 +2209,7 @@ function renderStocks(){
     document.getElementById(bodyId).innerHTML = stockRowsHtml(stocks, cur);
   }
 
-  const brokerEntries = Object.entries(brokerMap);
-  const useBrokerSubsections = brokerEntries.some(([broker])=>broker && broker !== 'Other Broker');
-  const brokerSectionsHtml = brokerEntries.map(([broker, stocks])=>{
+  const brokerSectionsHtml = filteredBrokerEntries.map(([broker, stocks])=>{
     const invested = stocks.reduce((sum, item)=>sum + Number(item.invested||0), 0);
     const current = stocks.reduce((sum, item)=>sum + Number(item.current_value||0), 0);
     const pnl = current - invested;
@@ -2135,15 +2225,18 @@ function renderStocks(){
           </div>
         </div>
         <div class="tw"><table><thead><tr>
-          <th>Ticker</th><th>Company</th><th>Sector</th><th>Qty</th><th>Avg</th><th>CMP</th><th>Invested</th><th>Current</th><th>P&L</th><th>%</th><th></th>
+          <th>Ticker</th><th>Company</th><th>Broker</th><th>Sector</th><th>Qty</th><th>Avg</th><th>CMP</th><th>Invested</th><th>Current</th><th>P&L</th><th>%</th><th></th>
         </tr></thead><tbody>${stockRowsHtml(stocks, 'auto')}</tbody></table></div>
       </div>`;
   }).join('');
 
-  document.getElementById('stockINDefaultSection').style.display = useBrokerSubsections ? 'none' : '';
-  document.getElementById('stockINBrokerSections').innerHTML = useBrokerSubsections ? brokerSectionsHtml : '';
+  document.getElementById('stockINDefaultSection').style.display = currentBrokerView === 'sections' ? 'none' : '';
+  document.getElementById('stockINBrokerSections').innerHTML =
+    currentBrokerView !== 'combined' && hasBrokerSections
+      ? (brokerSectionsHtml || '<div class="card" style="margin-bottom:1rem"><div class="empty-state"><h4>No broker section found</h4><p>Try All Brokers or add more broker-tagged holdings.</p></div></div>')
+      : '';
 
-  renderStockTable(inStocks, 'stockINBody', '₹');
+  renderStockTable(filteredInStocks, 'stockINBody', '₹');
   renderStockTable(usStocks, 'stockUSBody', '$');
 
   // Sector charts
@@ -2155,7 +2248,7 @@ function renderStocks(){
     destroyChart(canvasId);
     if(vals.length) CHARTS[canvasId]=new Chart(document.getElementById(canvasId),{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:colors.slice(0,vals.length),borderWidth:0,borderRadius:4}]},options:{cutout:'60%',plugins:{legend:{position:'right',labels:{padding:8,font:{size:10}}}}}});
   }
-  sectorChart(inStocks,'chSectorIN');
+  sectorChart(filteredInStocks,'chSectorIN');
   sectorChart(usStocks,'chSectorUS');
 }
 
@@ -2167,6 +2260,34 @@ function renderMF(){
   const totalCur = DATA.mutual_funds.reduce((s,x)=>s+Number(x.current_value||0),0);
   const totalRet = totalCur - totalInv;
   const totalSIP = DATA.mutual_funds.filter(m=>m.mode==='SIP').reduce((s,x)=>s+Number(x.sip_amount||0),0);
+  const platformMap = {};
+  DATA.mutual_funds.forEach((fund)=>{
+    const platform = getFundPlatformName(fund);
+    (platformMap[platform] ||= []).push(fund);
+  });
+  const platformEntries = Object.entries(platformMap).sort((a,b)=>a[0].localeCompare(b[0]));
+  const namedPlatforms = [...new Set(DATA.mutual_funds.map(getFundPlatformName).filter((name)=>name !== 'Direct / Unassigned'))];
+  const hasPlatformSections = namedPlatforms.length > 0;
+  const currentPlatformFilter = document.getElementById('mfPlatformFilter')?.value || 'all';
+  const currentPlatformView = document.getElementById('mfPlatformView')?.value || (hasPlatformSections ? 'both' : 'combined');
+  const filteredFunds = currentPlatformFilter === 'all'
+    ? DATA.mutual_funds
+    : DATA.mutual_funds.filter((fund)=>getFundPlatformName(fund) === currentPlatformFilter);
+  const filteredPlatformEntries = platformEntries.filter(([platform])=>currentPlatformFilter === 'all' || platform === currentPlatformFilter);
+
+  document.getElementById('mfControlBar').innerHTML = buildPortfolioControlCard({
+    title:'Platform Filters',
+    copy: hasPlatformSections
+      ? 'Review all mutual funds together or split them into broker / platform sections like Groww, Zerodha Coin, or direct AMC holdings.'
+      : 'Add a broker or platform while saving a fund to unlock platform-wise sections and filters.',
+    filterId:'mfPlatformFilter',
+    filterLabel:'Platform',
+    filterOptions:namedPlatforms,
+    selectedFilter:currentPlatformFilter,
+    viewId:'mfPlatformView',
+    selectedView:currentPlatformView,
+    changeHandler:'renderMF'
+  });
 
   document.getElementById('mfSummary').innerHTML = `
     ${buildMetricCard({
@@ -2197,35 +2318,82 @@ function renderMF(){
       badge:`${DATA.mutual_funds.filter(m=>m.mode==='SIP').length} SIP plans`,
       meta:`Recurring fund commitments stay visible alongside current portfolio value.`
     })}
+    ${buildMetricCard({
+      tone:'purple',
+      label:'Platforms',
+      value:String(Math.max(namedPlatforms.length, DATA.mutual_funds.length ? 1 : 0)),
+      badge: namedPlatforms.length ? 'Broker mapped' : 'Direct / unassigned',
+      meta:`Track fund allocations by platform while keeping one whole mutual fund book.`
+    })}
   `;
 
   const tbody = document.getElementById('mfBody');
-  if(!DATA.mutual_funds.length){tbody.innerHTML='<tr><td colspan="10" class="empty-state">No mutual funds added.</td></tr>';return;}
-  tbody.innerHTML = DATA.mutual_funds.map(m=>{
-    const ret = Number(m.returns||0);
-    return `<tr class="clickable" onclick="showDetail('mutual_funds','${m.id}')">
-      <td class="tk">${m.name||'—'}</td><td>${m.fund_house||'—'}</td>
-      <td><span class="pill pill-b">${m.category||'—'}</span></td>
-      <td><span class="pill pill-${m.mode==='SIP'?'g':'gold'}">${m.mode||'—'}</span></td>
-      <td>${m.mode==='SIP'?fmt(m.sip_amount):'—'}</td>
-      <td>${fmt(m.invested)}</td><td>${fmt(m.current_value)}</td>
-      <td class="${ret>=0?'pos':'neg'}">${fmt(ret)}</td><td class="${ret>=0?'pos':'neg'}">${m.xirr||'—'}%</td>
-      <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editItem('mutual_funds','${m.id}')">✎</button></td>
-    </tr>`;
-  }).join('');
+  const mfTableCard = document.getElementById('mfBody').closest('.card');
+  if(!DATA.mutual_funds.length){
+    tbody.innerHTML='<tr><td colspan="11" class="empty-state">No mutual funds added.</td></tr>';
+    document.getElementById('mfPlatformSections').innerHTML = '';
+    if(mfTableCard) mfTableCard.style.display = '';
+    return;
+  }
+
+  function fundRowsHtml(funds){
+    if(!funds.length) return '<tr><td colspan="11" class="empty-state">No mutual funds found for this platform view yet.</td></tr>';
+    return funds.map((fund)=>{
+      const ret = Number(fund.returns||0);
+      const platform = getFundPlatformName(fund);
+      return `<tr class="clickable" onclick="showDetail('mutual_funds','${fund.id}')">
+        <td class="tk">${fund.name||'—'}</td><td>${fund.fund_house||'—'}</td>
+        <td><span class="inline-broker-pill">${platform}</span></td>
+        <td><span class="pill pill-b">${fund.category||'—'}</span></td>
+        <td><span class="pill pill-${fund.mode==='SIP'?'g':'gold'}">${fund.mode||'—'}</span></td>
+        <td>${fund.mode==='SIP'?fmt(fund.sip_amount):'—'}</td>
+        <td>${fmt(fund.invested)}</td><td>${fmt(fund.current_value)}</td>
+        <td class="${ret>=0?'pos':'neg'}">${fmt(ret)}</td><td class="${ret>=0?'pos':'neg'}">${fund.xirr||'—'}%</td>
+        <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editItem('mutual_funds','${fund.id}')">✎</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  tbody.innerHTML = fundRowsHtml(filteredFunds);
+  document.getElementById('mfPlatformSections').innerHTML =
+    currentPlatformView !== 'combined' && hasPlatformSections
+      ? (filteredPlatformEntries.map(([platform, funds])=>{
+          const invested = funds.reduce((sum, item)=>sum + Number(item.invested||0), 0);
+          const current = funds.reduce((sum, item)=>sum + Number(item.current_value||0), 0);
+          const returns = current - invested;
+          const sip = funds.filter((item)=>item.mode==='SIP').reduce((sum, item)=>sum + Number(item.sip_amount||0), 0);
+          return `
+            <div class="stitle" style="margin-top:1rem;font-size:.9rem">${platform}</div>
+            <div class="card" style="margin-bottom:1rem">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:.9rem 1rem .25rem;gap:.75rem;flex-wrap:wrap">
+                <div class="section-kpis">
+                  <span>Funds <strong>${funds.length}</strong></span>
+                  <span>Invested <strong>${fmt(invested)}</strong></span>
+                  <span>Current <strong>${fmt(current)}</strong></span>
+                  <span>SIP <strong>${fmt(sip)}</strong></span>
+                  <span>Returns <strong class="${returns>=0?'pos':'neg'}">${fmt(returns)}</strong></span>
+                </div>
+              </div>
+              <div class="tw"><table><thead><tr>
+                <th>Fund</th><th>House</th><th>Broker / Platform</th><th>Category</th><th>Mode</th><th>SIP</th><th>Invested</th><th>Current</th><th>Returns</th><th>XIRR</th><th></th>
+              </tr></thead><tbody>${fundRowsHtml(funds)}</tbody></table></div>
+            </div>`;
+        }).join('') || '<div class="card" style="margin-bottom:1rem"><div class="empty-state"><h4>No platform section found</h4><p>Try All Platforms or tag more mutual funds with a broker / platform.</p></div></div>')
+      : '';
+  if(mfTableCard) mfTableCard.style.display = currentPlatformView === 'sections' ? 'none' : '';
 
   // Category chart
   const cats={};
-  DATA.mutual_funds.forEach(m=>{cats[m.category||'Other']=(cats[m.category||'Other']||0)+Number(m.current_value||0)});
+  filteredFunds.forEach(m=>{cats[m.category||'Other']=(cats[m.category||'Other']||0)+Number(m.current_value||0)});
   const catLabels=Object.keys(cats),catVals=Object.values(cats);
   const colors=['#d4a853','#60a5fa','#34d399','#a78bfa','#fb923c','#22d3ee','#f472b6'];
   destroyChart('chMFCat');
   if(catVals.length) CHARTS.chMFCat=new Chart(document.getElementById('chMFCat'),{type:'doughnut',data:{labels:catLabels,datasets:[{data:catVals,backgroundColor:colors,borderWidth:0,borderRadius:4}]},options:{cutout:'60%',plugins:{legend:{position:'right',labels:{padding:8,font:{size:10}}}}}});
 
   // Invested vs Current bar
-  const names = DATA.mutual_funds.map(m=>m.name?.substring(0,15)||'Fund');
-  const invVals = DATA.mutual_funds.map(m=>Number(m.invested||0));
-  const curVals = DATA.mutual_funds.map(m=>Number(m.current_value||0));
+  const names = filteredFunds.map(m=>m.name?.substring(0,15)||'Fund');
+  const invVals = filteredFunds.map(m=>Number(m.invested||0));
+  const curVals = filteredFunds.map(m=>Number(m.current_value||0));
   destroyChart('chMFBar');
   if(names.length) CHARTS.chMFBar=new Chart(document.getElementById('chMFBar'),{type:'bar',data:{labels:names,datasets:[{label:'Invested',data:invVals,backgroundColor:'rgba(138,138,155,.3)',borderRadius:4},{label:'Current',data:curVals,backgroundColor:'rgba(52,211,153,.5)',borderRadius:4}]},options:{indexAxis:'y',plugins:{legend:{position:'top',labels:{font:{size:10}}}},scales:{x:{ticks:{callback:v=>'₹'+v.toLocaleString()}}}}});
 }
@@ -2340,6 +2508,7 @@ const FORMS = {
   ]},
   mf:{title:'Mutual Fund',tab:'mutual_funds',fields:[
     {n:'name',l:'Fund Name',t:'text',req:1},{n:'fund_house',l:'Fund House',t:'text'},
+    {n:'platform',l:'Broker / Platform',t:'datalist',source:'investment_platforms',ph:'Choose or type a platform'},
     {n:'category',l:'Category',t:'select',opts:['Large Cap','Mid Cap','Small Cap','Flexi Cap','Index','ELSS','Hybrid','Debt','International','Sectoral']},
     {n:'type',l:'Fund Type',t:'select',opts:['Equity','Debt','Hybrid','Other']},
     {n:'mode',l:'Mode',t:'select',opts:['SIP','Lumpsum']},{n:'sip_amount',l:'SIP Amount (₹)',t:'number'},
@@ -2384,6 +2553,7 @@ function getFieldOptions(field, prefill={}){
   if(field.source === 'accounts') return getQuickLists().accounts;
   if(field.source === 'payment_modes') return getQuickLists().payment_modes;
   if(field.source === 'cards') return getQuickLists().cards;
+  if(field.source === 'investment_platforms') return getQuickLists().investment_platforms;
   if(field.source === 'transaction_categories'){
     return getTransactionCategoryOptions(prefill.type || document.getElementById('mf_type')?.value || 'expense');
   }
@@ -2440,6 +2610,10 @@ function captureQuickListsFromModal(formKey, item){
     if(isCardPaymentMode(item.payment_mode)) appendQuickListValue('cards', item.payment_source);
     return;
   }
+  if(formKey === 'stock'){
+    appendQuickListValue('investment_platforms', item.broker);
+    return;
+  }
   if(formKey === 'account'){
     appendQuickListValue('accounts', item.bank);
     return;
@@ -2450,6 +2624,10 @@ function captureQuickListsFromModal(formKey, item){
   }
   if(formKey === 'income'){
     appendQuickListValue('accounts', item.account);
+    return;
+  }
+  if(formKey === 'mf'){
+    appendQuickListValue('investment_platforms', item.platform);
   }
 }
 
@@ -4060,6 +4238,13 @@ function renderQuickListSettings(){
         inputId:'quickCardsInput',
         placeholder:'Add HDFC Regalia, SBI Cashback...'
       })}
+      ${renderQuickListGroup({
+        title:'Investment Brokers / Platforms',
+        description:'Used in stock and mutual fund forms, plus broker-wise portfolio sections.',
+        path:'investment_platforms',
+        inputId:'quickInvestmentPlatformsInput',
+        placeholder:'Add Zerodha, Groww, Upstox, Angel One...'
+      })}
       <div class="quick-list-grid">
         ${renderQuickListGroup({
           title:'Expense Categories',
@@ -4189,6 +4374,8 @@ function openStockModal(prefill = {}) {
   stkEditingId = prefill.id || null;
   document.getElementById('stockModalTitle').textContent = stkEditingId ? 'Edit Stock Holding' : 'Add Stock Holding';
   stkReset(false);
+  document.getElementById('stkBrokerList').innerHTML = getQuickLists().investment_platforms.map((option)=>`<option value="${escapeHtml(option)}"></option>`).join('');
+  document.getElementById('stkBroker').value = '';
 
   if (stkEditingId) {
     // Pre-populate for edit — skip search step
@@ -4205,6 +4392,7 @@ function openStockModal(prefill = {}) {
     document.getElementById('stkAvgPrice').value    = prefill.avg_price || '';
     document.getElementById('stkCurrentPrice').value = prefill.current_price || '';
     document.getElementById('stkSector').value      = prefill.sector || '';
+    document.getElementById('stkBroker').value      = prefill.broker || '';
     const mktEl = document.getElementById('stkMarket');
     if (prefill.market) [...mktEl.options].forEach(o => { o.selected = o.value === prefill.market; });
     stkRecalc();
@@ -4228,6 +4416,7 @@ function stkReset(focusInput = true) {
   document.getElementById('stkSearchInput').value = '';
   document.getElementById('stkDropdown').style.display = 'none';
   document.getElementById('stkSearchStatus').textContent = '';
+  document.getElementById('stkBroker').value = '';
   if (focusInput) setTimeout(() => document.getElementById('stkSearchInput').focus(), 60);
 }
 
@@ -4827,6 +5016,7 @@ function saveStockFromModal() {
     company:       document.getElementById('stkCompany').value || stkSelected.company,
     description:   document.getElementById('stkCompany').value || stkSelected.company,
     market:        document.getElementById('stkMarket').value,
+    broker:        document.getElementById('stkBroker').value.trim(),
     sector:        document.getElementById('stkSector').value,
     qty,
     avg_price:     avg,
@@ -4838,6 +5028,7 @@ function saveStockFromModal() {
     currency:      stkSelected.currency || 'INR',
     symbol_full:   stkSelected.symbol || ''
   };
+  appendQuickListValue('investment_platforms', item.broker);
 
   if (stkEditingId) {
     const idx = DATA.stocks.findIndex(x => x.id === stkEditingId);
