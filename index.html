@@ -3315,6 +3315,7 @@ const CAT_INVEST  = ['Stocks','Mutual Fund','SIP','Fixed Deposit','Other Investm
 let wizardStep = 0;       // 1=source-type, 2=source-name, 3=transactions
 let wizardDocKind = '';   // 'bank'|'credit_card'|'salary'|'stock'|'mf'|'fd'|'other'
 let wizardSource  = '';   // bank/broker/employer name
+let wizardCardName = '';  // exact credit card name for card statements
 let txEdits = [];         // per-transaction: {include, type, category, description, amount, date}
 let scanReviewRows = [];  // raw parsed rows aligned with txEdits during review
 
@@ -3420,6 +3421,193 @@ const KNOWN_SCAN_SOURCES = [
   'Paytm Money','MF Central','CAMS','KFintech','HDFC MF','SBI MF'
 ];
 
+const CREDIT_CARD_SOURCE_ALIASES = {
+  'HDFC Bank':['hdfc','hdfc bank','hdfc card'],
+  'ICICI Bank':['icici','icici bank','icici card'],
+  'State Bank of India':['sbi','sbi card','state bank of india'],
+  'Axis Bank':['axis','axis bank','axis card'],
+  'Kotak Mahindra Bank':['kotak','kotak bank','kotak card','kotak mahindra'],
+  'American Express':['amex','american express'],
+  'Citibank':['citi','citi card','citibank'],
+  'IndusInd Bank':['indusind','indusind bank','indusind card'],
+  'RBL Bank':['rbl','rbl bank','rbl card'],
+  'IDFC FIRST Bank':['idfc','idfc first','idfc first bank'],
+  'HSBC':['hsbc'],
+  'AU Small Finance Bank':['au','au bank','au small finance bank'],
+  'YES Bank':['yes bank'],
+  'Standard Chartered':['standard chartered','sc bank']
+};
+
+function uniqueTextList(list=[]){
+  return sanitizeTextList(list, []);
+}
+
+function normalizeCreditCardSource(value=''){
+  const text = String(value || '').trim();
+  if(!text) return '';
+  const lower = text.toLowerCase();
+  for(const [label, aliases] of Object.entries(CREDIT_CARD_SOURCE_ALIASES)){
+    if(lower === label.toLowerCase()) return label;
+    if(aliases.some((alias)=> lower === alias || lower.includes(alias))) return label;
+  }
+  return text;
+}
+
+function getCreditCardSourceTokens(value=''){
+  const normalized = normalizeCreditCardSource(value);
+  const lower = normalized.toLowerCase();
+  const tokens = new Set();
+  if(lower) tokens.add(lower);
+  lower.split(/[^a-z0-9]+/).filter(Boolean).forEach((part)=>tokens.add(part));
+  Object.entries(CREDIT_CARD_SOURCE_ALIASES).forEach(([label, aliases])=>{
+    const labelLower = label.toLowerCase();
+    if(lower === labelLower || lower.includes(labelLower) || aliases.some((alias)=>lower.includes(alias))){
+      tokens.add(labelLower);
+      aliases.forEach((alias)=>tokens.add(alias));
+    }
+  });
+  if(lower.includes('state bank of india')) tokens.add('sbi');
+  if(lower.includes('american express')) tokens.add('amex');
+  if(lower.includes('kotak')) tokens.add('mahindra');
+  return [...tokens].filter(Boolean);
+}
+
+function getWizardSourceOptions(kind=''){
+  if(kind !== 'credit_card') return ISSUERS[kind] || ISSUERS.other;
+  return uniqueTextList([
+    ...getQuickLists().accounts,
+    ...Object.keys(CREDIT_CARD_SOURCE_ALIASES),
+    'Other'
+  ]);
+}
+
+function getWizardCardOptionsForSource(source=''){
+  const cards = getQuickLists().cards || [];
+  if(!cards.length) return [];
+  if(!source || /^other$/i.test(String(source || '').trim())) return cards;
+  const tokens = getCreditCardSourceTokens(source);
+  const filtered = cards.filter((card)=>{
+    const hay = String(card || '').toLowerCase();
+    return tokens.some((token)=>hay.includes(token));
+  });
+  return filtered.length ? filtered : cards;
+}
+
+function inferWizardCardName(...texts){
+  const hay = texts.filter(Boolean).join(' ').toLowerCase();
+  const cards = getQuickLists().cards || [];
+  return cards.find((card)=>hay.includes(String(card).toLowerCase())) || '';
+}
+
+function syncWizardCardSelection(){
+  if(wizardDocKind !== 'credit_card'){
+    wizardCardName = '';
+    return;
+  }
+  const options = getWizardCardOptionsForSource(wizardSource);
+  if(wizardCardName){
+    const exact = options.find((option)=>option.toLowerCase() === wizardCardName.toLowerCase());
+    if(exact){
+      wizardCardName = exact;
+      return;
+    }
+  }
+  const inferred = inferWizardCardName(
+    lastScanParsed?._filename,
+    lastScanParsed?.issuer,
+    lastScanParsed?.raw_text,
+    JSON.stringify(lastScanParsed?.additional_info || {})
+  );
+  if(inferred && options.some((option)=>option.toLowerCase() === inferred.toLowerCase())){
+    wizardCardName = options.find((option)=>option.toLowerCase() === inferred.toLowerCase()) || inferred;
+    return;
+  }
+  if(options.length === 1){
+    wizardCardName = options[0];
+    return;
+  }
+  wizardCardName = '';
+}
+
+function clearWizardSourceSelectionStyles(){
+  document.querySelectorAll('[id^="wsrc-"]').forEach((button)=>{
+    button.style.borderColor = '';
+    button.style.color = '';
+    button.style.background = '';
+  });
+}
+
+function clearWizardCardSelectionStyles(){
+  document.querySelectorAll('[id^="wcard-"]').forEach((button)=>{
+    button.style.borderColor = '';
+    button.style.color = '';
+    button.style.background = '';
+  });
+}
+
+function onWizardSourceCustomInput(value=''){
+  wizardSource = String(value || '').trimStart();
+  clearWizardSourceSelectionStyles();
+  if(wizardDocKind === 'credit_card'){
+    syncWizardCardSelection();
+    renderWizardCardChooser();
+  }
+}
+
+function onWizardCardCustomInput(value=''){
+  wizardCardName = String(value || '').trimStart();
+  clearWizardCardSelectionStyles();
+}
+
+function getWizardSourceLabel(){
+  if(wizardDocKind === 'credit_card' && wizardCardName){
+    return `${wizardSource} · ${wizardCardName}`;
+  }
+  return wizardSource || 'Unknown';
+}
+
+function renderWizardCardChooser(){
+  const host = document.getElementById('wizardCardChooser');
+  if(!host) return;
+  if(wizardDocKind !== 'credit_card'){
+    host.innerHTML = '';
+    return;
+  }
+
+  if(wizardSource){
+    syncWizardCardSelection();
+  }
+
+  const source = normalizeCreditCardSource(wizardSource);
+  const cardOptions = source ? getWizardCardOptionsForSource(source) : [];
+  const matchedSubset = source && getQuickLists().cards.some((card)=>!cardOptions.includes(card));
+  host.innerHTML = `
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+      <div style="font-size:.95rem;font-weight:600;color:var(--text)">Which credit card?</div>
+      <div style="font-size:.78rem;color:var(--text3);margin-top:.2rem">
+        ${source
+          ? (matchedSubset ? `Showing saved cards matching ${escapeHtml(source)}.` : 'Showing your saved credit card master list.')
+          : 'Select the issuing bank first to reveal saved cards from your master list.'}
+      </div>
+
+      ${source ? `
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem">
+        ${cardOptions.map((card, index)=>`
+          <button onclick="selectWizardCard('${card.replace(/'/g,"&#39;")}')" id="wcard-${index}" class="btn btn-outline btn-sm" style="
+            ${wizardCardName===card ? 'border-color:var(--gold);color:var(--gold);background:var(--golddim)' : ''}
+          ">${escapeHtml(card)}</button>
+        `).join('')}
+      </div>
+
+      <div style="margin-top:.9rem;display:flex;gap:.5rem;align-items:center">
+        <input id="wizardCardCustom" class="scan-edit-inline" placeholder="Or type custom credit card name…"
+          value="${cardOptions.includes(wizardCardName)?'':escapeHtml(wizardCardName)}"
+          oninput="onWizardCardCustomInput(this.value)"
+          style="width:min(100%,360px);font-size:.85rem;padding:.4rem .6rem">
+      </div>` : ''}
+    </div>`;
+}
+
 function detectKnownSource(...texts){
   const hay = texts.filter(Boolean).join(' ').toLowerCase();
   return KNOWN_SCAN_SOURCES.find(name => hay.includes(name.toLowerCase())) || '';
@@ -3482,6 +3670,7 @@ function renderScanResult(parsed, filename){
   // Detect initial kind from doc type
   wizardDocKind = inferredKind;
   wizardSource  = firstFilled(parsed.issuer, detectKnownSource(filename, parsed.raw_text, JSON.stringify(parsed.additional_info||{})), '');
+  wizardCardName = '';
 
   showWizardStep1(resultsDiv, filename);
 }
@@ -3533,6 +3722,7 @@ function showWizardStep1(container, filename){
 
 function selectWizardKind(id){
   wizardDocKind = id;
+  if(id !== 'credit_card') wizardCardName = '';
   document.querySelectorAll('[id^="wkind-"]').forEach(b=>{
     const k = b.id.replace('wkind-','');
     const colors = {bank:'var(--blue)',credit_card:'var(--red)',salary:'var(--green)',stock:'var(--purple)',mf:'var(--cyan)',fd:'var(--orange)',other:'var(--text2)'};
@@ -3560,14 +3750,18 @@ const ISSUERS = {
 
 function showWizardStep2(container){
   wizardStep = 2;
-  const options = ISSUERS[wizardDocKind] || ISSUERS.other;
+  const options = getWizardSourceOptions(wizardDocKind);
   // Try to auto-match issuer from parsed data
+  if(wizardDocKind === 'credit_card'){
+    wizardSource = normalizeCreditCardSource(wizardSource);
+  }
   if(wizardSource && !options.find(o=>o.toLowerCase()===wizardSource.toLowerCase())){
     // Keep wizardSource as custom
   } else if(wizardSource) {
     const matched = options.find(o=>wizardSource.toLowerCase().includes(o.toLowerCase().replace(' card','').replace(' mf','')));
     if(matched) wizardSource = matched;
   }
+  syncWizardCardSelection();
 
   container.innerHTML = `
     <div style="margin-top:1rem">
@@ -3575,8 +3769,8 @@ function showWizardStep2(container){
 
       <div style="margin:1.25rem 0 .5rem">
         <button onclick="wizardBack()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem;font-family:inherit;padding:0;margin-bottom:.75rem">← Back</button>
-        <div style="font-size:1rem;font-weight:600;color:var(--text)">Who issued this statement?</div>
-        <div style="font-size:.78rem;color:var(--text3);margin-top:.2rem">Select or type a name</div>
+        <div style="font-size:1rem;font-weight:600;color:var(--text)">${wizardDocKind==='credit_card' ? 'Which bank issued this statement?' : 'Who issued this statement?'}</div>
+        <div style="font-size:.78rem;color:var(--text3);margin-top:.2rem">${wizardDocKind==='credit_card' ? 'Pick the issuing bank first, then choose the exact saved card.' : 'Select or type a name'}</div>
       </div>
 
       <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem">
@@ -3588,28 +3782,49 @@ function showWizardStep2(container){
       </div>
 
       <div style="margin-top:.9rem;display:flex;gap:.5rem;align-items:center">
-        <input id="wizardSourceCustom" class="scan-edit-inline" placeholder="Or type custom name…"
-          value="${options.includes(wizardSource)?'':wizardSource}"
-          oninput="wizardSource=this.value;document.querySelectorAll('[id^=wsrc-]').forEach(b=>b.style.borderColor='');b.style.color=''"
-          style="width:220px;font-size:.85rem;padding:.4rem .6rem">
+        <input id="wizardSourceCustom" class="scan-edit-inline" placeholder="${wizardDocKind==='credit_card' ? 'Or type custom bank name…' : 'Or type custom name…'}"
+          value="${options.includes(wizardSource)?'':escapeHtml(wizardSource)}"
+          oninput="onWizardSourceCustomInput(this.value)"
+          style="width:min(100%,280px);font-size:.85rem;padding:.4rem .6rem">
       </div>
+
+      <div id="wizardCardChooser"></div>
 
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem">
         <button class="btn btn-outline btn-sm" onclick="wizardBack()">← Back</button>
         <button class="btn btn-gold" onclick="wizardNext2()">${txEdits.length ? `Next → Review ${(wizardDocKind==='stock'||wizardDocKind==='mf') ? 'Holdings' : 'Transactions'}` : 'Finish & Save'}</button>
       </div>
     </div>`;
+
+  renderWizardCardChooser();
 }
 
 function selectWizardSource(name){
-  wizardSource = name;
+  wizardSource = wizardDocKind==='credit_card' ? normalizeCreditCardSource(name) : name;
   document.querySelectorAll('[id^="wsrc-"]').forEach(b=>{
-    const isSelected = b.textContent.trim() === name;
+    const isSelected = b.textContent.trim() === wizardSource;
     b.style.borderColor = isSelected ? 'var(--gold)' : '';
     b.style.color       = isSelected ? 'var(--gold)' : '';
     b.style.background  = isSelected ? 'var(--golddim)' : '';
   });
-  document.getElementById('wizardSourceCustom').value = '';
+  const customInput = document.getElementById('wizardSourceCustom');
+  if(customInput) customInput.value = '';
+  if(wizardDocKind === 'credit_card'){
+    syncWizardCardSelection();
+    renderWizardCardChooser();
+  }
+}
+
+function selectWizardCard(name){
+  wizardCardName = name;
+  document.querySelectorAll('[id^="wcard-"]').forEach((button)=>{
+    const isSelected = button.textContent.trim() === name;
+    button.style.borderColor = isSelected ? 'var(--gold)' : '';
+    button.style.color = isSelected ? 'var(--gold)' : '';
+    button.style.background = isSelected ? 'var(--golddim)' : '';
+  });
+  const customInput = document.getElementById('wizardCardCustom');
+  if(customInput) customInput.value = '';
 }
 
 function wizardBack(){
@@ -3621,8 +3836,16 @@ function wizardBack(){
 function wizardNext2(){
   // Grab custom input if filled
   const custom = document.getElementById('wizardSourceCustom')?.value?.trim();
-  if(custom) wizardSource = custom;
+  if(custom) wizardSource = wizardDocKind==='credit_card' ? normalizeCreditCardSource(custom) : custom;
   if(!wizardSource) wizardSource = 'Unknown';
+  if(wizardDocKind === 'credit_card'){
+    const customCard = document.getElementById('wizardCardCustom')?.value?.trim();
+    if(customCard) wizardCardName = customCard;
+    if(!wizardCardName){
+      toast('Choose the exact credit card or type a custom card name');
+      return;
+    }
+  }
 
   if(!txEdits.length){
     // No transactions — handle salary/investment direct save
@@ -3863,7 +4086,7 @@ function renderWizardStep3(container){
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin:1.25rem 0 .75rem;flex-wrap:wrap;gap:.5rem">
         <div>
-          <div style="font-size:1rem;font-weight:600;color:var(--text)">${txEdits.length} ${isHoldings?'holdings':'transactions'} from <span style="color:var(--gold)">${wizardSource}</span></div>
+          <div style="font-size:1rem;font-weight:600;color:var(--text)">${txEdits.length} ${isHoldings?'holdings':'transactions'} from <span style="color:var(--gold)">${escapeHtml(getWizardSourceLabel())}</span></div>
           <div style="font-size:.78rem;color:var(--text3);margin-top:.15rem">${isHoldings?'Edit any field inline. Tap ✓ to include/exclude.':'Tap type & category to correct. Tap ✓ to include/exclude.'}</div>
         </div>
         ${!isHoldings ? `<div style="display:flex;gap:.4rem;flex-wrap:wrap">
@@ -4047,10 +4270,12 @@ function wizardFinish(){
     if(!tx.include || tx.type==='skip'){ counts.skip++; return; }
 
     if(tx.type==='expense'){
+      const noteSource = [wizardSource, wizardCardName].filter(Boolean).join(' · ');
       const item = {id:uid(), date:tx.date, description:tx.description, amount:tx.amount,
         type:'expense', category:tx.category||'Other',
         payment_mode:wizardDocKind==='credit_card'?'Credit Card':'Scanned',
-        account:wizardSource, notes:'From '+wizardSource+' statement',
+        payment_source:wizardDocKind==='credit_card' ? wizardCardName : '',
+        account:wizardSource, notes:'From '+(noteSource || wizardSource)+' statement',
         created_at:new Date().toISOString()};
       DATA.transactions.push(item); queueCloudSync('transactions',item,'add'); counts.expense++;
 
@@ -4115,6 +4340,12 @@ function wizardFinish(){
     }
   });
 
+  if(wizardSource && wizardSource !== 'Unknown'){
+    appendQuickListValue('accounts', wizardSource);
+  }
+  if(wizardDocKind === 'credit_card' && wizardCardName){
+    appendQuickListValue('cards', wizardCardName);
+  }
   saveData(); renderAll();
 
   const summary = Object.entries(counts).filter(([k,v])=>v>0&&k!=='skip').map(([k,v])=>`${v} ${k}`).join(', ');
