@@ -140,6 +140,22 @@ tr.clickable:hover td{color:var(--text);background:rgba(212,168,83,.03)}
 .portfolio-control-actions{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
 .portfolio-filter-select{min-width:180px;padding:.48rem .7rem;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:.8rem}
 .portfolio-filter-select:focus{outline:none;border-color:var(--gold)}
+.transaction-filter-panel{display:grid;gap:1rem;margin-bottom:1rem}
+.transaction-filter-copy{display:grid;gap:.32rem}
+.transaction-filter-copy p{font-size:.76rem;color:var(--text2);line-height:1.55}
+.transaction-filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.75rem}
+.transaction-filter-group{display:grid;gap:.35rem}
+.transaction-filter-group label{font-size:.66rem;text-transform:uppercase;letter-spacing:.85px;color:var(--text3);font-weight:700}
+.transaction-filter-actions{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap}
+.transaction-filter-note{font-size:.74rem;color:var(--text3)}
+.transaction-trend-stack{display:grid;gap:.7rem}
+.transaction-trend-row{display:grid;grid-template-columns:80px 1fr auto;gap:.75rem;align-items:center}
+.transaction-trend-row .month{font-size:.72rem;color:var(--text2);font-weight:600}
+.transaction-trend-row .value{font-size:.78rem;font-weight:700}
+.transaction-trend-row .meta{font-size:.66rem;color:var(--text3)}
+.transaction-trend-track{height:9px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden;position:relative}
+.transaction-trend-fill{height:100%;border-radius:999px}
+.transaction-table-note{font-size:.74rem;color:var(--text3)}
 .section-kpis{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.74rem;color:var(--text3)}
 .section-kpis strong{color:var(--text)}
 .inline-broker-pill{display:inline-flex;align-items:center;padding:.14rem .48rem;border-radius:999px;background:rgba(167,139,250,.12);color:var(--purple);font-size:.65rem;font-weight:600}
@@ -560,10 +576,63 @@ body.auth-ready .auth-screen{display:none}
 <div class="tc" id="tc-transactions">
   <div class="toolbar">
     <h2 class="stitle" style="margin:0">Transactions</h2>
-    <div style="display:flex;gap:.5rem;align-items:center">
-      <select id="txFilter" class="btn btn-outline btn-sm" style="padding:.35rem .6rem"><option value="all">All Types</option><option value="expense">Expenses</option><option value="investment">Investments</option><option value="transfer">Transfers</option></select>
-      <button class="btn btn-gold btn-sm" onclick="openModal('transaction')">+ Add Transaction</button>
+    <button class="btn btn-gold btn-sm" onclick="openModal('transaction')">+ Add Transaction</button>
+  </div>
+  <div class="card transaction-filter-panel">
+    <div class="transaction-filter-copy">
+      <div class="ct" style="margin:0">Filter Transactions</div>
+      <p id="txFilterSummary">Slice by type, category, bank, mode, or exact card. Totals and monthly trend update instantly from the same filtered set.</p>
     </div>
+    <div class="transaction-filter-grid">
+      <div class="transaction-filter-group">
+        <label for="txFilter">Type</label>
+        <select id="txFilter" class="portfolio-filter-select">
+          <option value="all">All Types</option>
+        </select>
+      </div>
+      <div class="transaction-filter-group">
+        <label for="txCategoryFilter">Category</label>
+        <select id="txCategoryFilter" class="portfolio-filter-select">
+          <option value="all">All Categories</option>
+        </select>
+      </div>
+      <div class="transaction-filter-group">
+        <label for="txAccountFilter">Bank / Account</label>
+        <select id="txAccountFilter" class="portfolio-filter-select">
+          <option value="all">All Banks / Accounts</option>
+        </select>
+      </div>
+      <div class="transaction-filter-group">
+        <label for="txModeFilter">Payment Mode</label>
+        <select id="txModeFilter" class="portfolio-filter-select">
+          <option value="all">All Modes</option>
+        </select>
+      </div>
+      <div class="transaction-filter-group">
+        <label for="txCardFilter">Card / Instrument</label>
+        <select id="txCardFilter" class="portfolio-filter-select">
+          <option value="all">All Cards / Instruments</option>
+        </select>
+      </div>
+    </div>
+    <div class="transaction-filter-actions">
+      <div class="transaction-filter-note" id="txResultMeta">Showing the full transaction ledger.</div>
+      <button class="btn btn-outline btn-sm" id="txResetFilters">Reset Filters</button>
+    </div>
+  </div>
+  <div class="g g4" id="txSummaryCards"></div>
+  <div class="g g23" style="margin-top:1rem">
+    <div class="card">
+      <div class="ct">Monthly Trend</div>
+      <div class="chw h250"><canvas id="chTxTrend"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ct">Monthly Snapshot</div>
+      <div id="txTrendSummary"></div>
+    </div>
+  </div>
+  <div class="toolbar" style="margin-top:1rem;margin-bottom:.8rem">
+    <div class="transaction-table-note" id="txTableNote">Latest transactions across all sources.</div>
   </div>
   <div class="card"><div class="tw"><table><thead><tr>
     <th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th><th>Account</th><th>Mode / Instrument</th><th></th>
@@ -2011,28 +2080,299 @@ function renderOverview(){
 // ═══════════════════════════════════════════
 //  TRANSACTIONS
 // ═══════════════════════════════════════════
+function getTransactionAmountValue(tx){
+  return Math.abs(Number(tx?.amount || 0));
+}
+
+function getTransactionSignedAmount(tx){
+  const amount = getTransactionAmountValue(tx);
+  return String(tx?.type || '').toLowerCase() === 'income' ? amount : -amount;
+}
+
+function formatSignedCurrency(value){
+  const amount = Number(value || 0);
+  if(!amount) return fmt(0);
+  return `${amount > 0 ? '+' : '-'}${fmt(Math.abs(amount))}`;
+}
+
+function getTransactionFilterState(){
+  return {
+    type: document.getElementById('txFilter')?.value || 'all',
+    category: document.getElementById('txCategoryFilter')?.value || 'all',
+    account: document.getElementById('txAccountFilter')?.value || 'all',
+    mode: document.getElementById('txModeFilter')?.value || 'all',
+    card: document.getElementById('txCardFilter')?.value || 'all'
+  };
+}
+
+function countActiveTransactionFilters(filters={}){
+  return Object.values(filters).filter((value)=>value && value !== 'all').length;
+}
+
+function sortTextValues(values=[]){
+  return [...values].sort((a,b)=>String(a).localeCompare(String(b), 'en-IN', { sensitivity:'base' }));
+}
+
+function getTransactionFilterOptions(){
+  const items = [...DATA.transactions];
+  return {
+    types: sortTextValues(uniqueTextList(items.map((item)=>item.type).filter(Boolean))),
+    categories: sortTextValues(uniqueTextList(items.map((item)=>item.category).filter(Boolean))),
+    accounts: sortTextValues(uniqueTextList(items.map((item)=>item.account).filter(Boolean))),
+    modes: sortTextValues(uniqueTextList(items.map((item)=>item.payment_mode).filter(Boolean))),
+    cards: sortTextValues(uniqueTextList(items.map((item)=>item.payment_source).filter(Boolean)))
+  };
+}
+
+function syncTransactionFilterOptions(filters={}){
+  const options = getTransactionFilterOptions();
+  const configs = [
+    { id:'txFilter', values:options.types, selected:filters.type, allLabel:'All Types' },
+    { id:'txCategoryFilter', values:options.categories, selected:filters.category, allLabel:'All Categories' },
+    { id:'txAccountFilter', values:options.accounts, selected:filters.account, allLabel:'All Banks / Accounts' },
+    { id:'txModeFilter', values:options.modes, selected:filters.mode, allLabel:'All Modes' },
+    { id:'txCardFilter', values:options.cards, selected:filters.card, allLabel:'All Cards / Instruments' }
+  ];
+
+  configs.forEach(({ id, values, selected, allLabel })=>{
+    const select = document.getElementById(id);
+    if(!select) return;
+    const safeSelected = selected && (selected === 'all' || values.includes(selected)) ? selected : 'all';
+    select.innerHTML = buildFilterOptions(values, safeSelected || 'all', allLabel);
+    select.value = safeSelected || 'all';
+  });
+}
+
+function filterTransactions(items=[], filters={}){
+  return items.filter((item)=>{
+    if(filters.type !== 'all' && (item.type || '') !== filters.type) return false;
+    if(filters.category !== 'all' && (item.category || '') !== filters.category) return false;
+    if(filters.account !== 'all' && (item.account || '') !== filters.account) return false;
+    if(filters.mode !== 'all' && (item.payment_mode || '') !== filters.mode) return false;
+    if(filters.card !== 'all' && (item.payment_source || '') !== filters.card) return false;
+    return true;
+  });
+}
+
+function buildTransactionMonthlyTrend(items=[]){
+  const monthMap = new Map();
+  items.forEach((item)=>{
+    const dt = item?.date ? new Date(item.date) : null;
+    const valid = dt && !Number.isNaN(dt.getTime());
+    const key = valid
+      ? `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2,'0')}`
+      : 'unknown';
+    if(!monthMap.has(key)){
+      monthMap.set(key, {
+        key,
+        label: valid
+          ? dt.toLocaleDateString('en-IN', { month:'short', year:'2-digit' })
+          : 'Unknown',
+        total: 0,
+        inflow: 0,
+        outflow: 0,
+        count: 0
+      });
+    }
+    const bucket = monthMap.get(key);
+    const signed = getTransactionSignedAmount(item);
+    const absolute = getTransactionAmountValue(item);
+    bucket.total += signed;
+    bucket.count += 1;
+    if(signed >= 0){
+      bucket.inflow += absolute;
+    } else {
+      bucket.outflow += absolute;
+    }
+  });
+
+  return [...monthMap.values()].sort((a,b)=>a.key.localeCompare(b.key));
+}
+
+function renderTransactionTrendChart(months=[]){
+  destroyChart('chTxTrend');
+  const canvas = document.getElementById('chTxTrend');
+  if(!canvas || !months.length) return;
+  CHARTS.chTxTrend = new Chart(canvas, {
+    type:'bar',
+    data:{
+      labels: months.map((month)=>month.label),
+      datasets:[{
+        label:'Net Monthly Flow',
+        data: months.map((month)=>month.total),
+        backgroundColor: months.map((month)=>month.total >= 0 ? 'rgba(52,211,153,.58)' : 'rgba(248,113,113,.55)'),
+        borderColor: months.map((month)=>month.total >= 0 ? 'rgba(52,211,153,.95)' : 'rgba(248,113,113,.95)'),
+        borderWidth: 1,
+        borderRadius: 10,
+        borderSkipped: false,
+        maxBarThickness: 34
+      }]
+    },
+    options:{
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false }
+      },
+      scales:{
+        x:{
+          grid:{ display:false },
+          ticks:{ color:'#8b8b9a' }
+        },
+        y:{
+          grid:{ color:'rgba(255,255,255,.05)' },
+          ticks:{
+            color:'#8b8b9a',
+            callback:(value)=>'₹' + Number(value).toLocaleString('en-IN')
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderTransactionTrendSummary(months=[], filters={}){
+  const host = document.getElementById('txTrendSummary');
+  if(!host) return;
+  if(!months.length){
+    host.innerHTML = '<div class="empty-state"><h4>No trend yet</h4><p>Adjust filters or add transactions to see monthly movement.</p></div>';
+    return;
+  }
+
+  const latest = months[months.length - 1];
+  const strongest = [...months].sort((a,b)=>Math.abs(b.total) - Math.abs(a.total))[0];
+  const monthlyAverage = months.reduce((sum, month)=>sum + month.total, 0) / months.length;
+  const maxAbs = Math.max(...months.map((month)=>Math.abs(month.total)), 1);
+  const filterCount = countActiveTransactionFilters(filters);
+  host.innerHTML = `
+    <div class="transaction-trend-stack">
+      <div class="sr"><span class="sl">Latest Month</span><span class="sv ${latest.total>=0?'pos':'neg'}">${latest.label} · ${formatSignedCurrency(latest.total)}</span></div>
+      <div class="sr"><span class="sl">Strongest Move</span><span class="sv ${strongest.total>=0?'pos':'neg'}">${strongest.label} · ${formatSignedCurrency(strongest.total)}</span></div>
+      <div class="sr"><span class="sl">Monthly Average</span><span class="sv ${monthlyAverage>=0?'pos':'neg'}">${formatSignedCurrency(monthlyAverage)}</span></div>
+      <div class="sr"><span class="sl">Active Filters</span><span class="sv">${filterCount ? `${filterCount} active` : 'Full ledger'}</span></div>
+      ${months.slice(-6).reverse().map((month)=>{
+        const width = `${Math.max(8, (Math.abs(month.total) / maxAbs) * 100)}%`;
+        return `
+          <div class="transaction-trend-row">
+            <div>
+              <div class="month">${month.label}</div>
+              <div class="meta">${month.count} item${month.count===1?'':'s'}</div>
+            </div>
+            <div class="transaction-trend-track">
+              <div class="transaction-trend-fill" style="width:${width};background:${month.total>=0?'linear-gradient(90deg,rgba(52,211,153,.35),rgba(52,211,153,.92))':'linear-gradient(90deg,rgba(248,113,113,.35),rgba(248,113,113,.9))'}"></div>
+            </div>
+            <div class="value ${month.total>=0?'pos':'neg'}">${formatSignedCurrency(month.total)}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function resetTransactionFilters(){
+  ['txFilter','txCategoryFilter','txAccountFilter','txModeFilter','txCardFilter'].forEach((id)=>{
+    const element = document.getElementById(id);
+    if(element) element.value = 'all';
+  });
+  renderTransactions();
+}
+
 function renderTransactions(){
-  const filter = document.getElementById('txFilter')?.value || 'all';
-  let items = [...DATA.transactions].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  if(filter!=='all') items = items.filter(x=>x.type===filter);
+  syncTransactionFilterOptions(getTransactionFilterState());
+  const filters = getTransactionFilterState();
+  let items = filterTransactions([...DATA.transactions], filters).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const signedTotal = items.reduce((sum, item)=>sum + getTransactionSignedAmount(item), 0);
+  const outflow = items.reduce((sum, item)=>sum + (getTransactionSignedAmount(item) < 0 ? getTransactionAmountValue(item) : 0), 0);
+  const inflow = items.reduce((sum, item)=>sum + (getTransactionSignedAmount(item) > 0 ? getTransactionAmountValue(item) : 0), 0);
+  const monthlyTrend = buildTransactionMonthlyTrend(items);
+  const monthlyAverage = monthlyTrend.length ? signedTotal / monthlyTrend.length : 0;
+  const activeFilterCount = countActiveTransactionFilters(filters);
+  const summary = document.getElementById('txSummaryCards');
+  const filterSummary = document.getElementById('txFilterSummary');
+  const resultMeta = document.getElementById('txResultMeta');
+  const tableNote = document.getElementById('txTableNote');
+
+  if(summary){
+    summary.innerHTML = `
+      ${buildMetricCard({
+        tone: signedTotal >= 0 ? 'green' : 'red',
+        label:'Filtered Sum',
+        value: formatSignedCurrency(signedTotal),
+        badge: activeFilterCount ? `${activeFilterCount} filter${activeFilterCount===1?'':'s'}` : 'Full ledger',
+        meta:`${items.length} matching transaction${items.length===1?'':'s'} across ${monthlyTrend.length || 0} month${monthlyTrend.length===1?'':'s'}.`
+      })}
+      ${buildMetricCard({
+        tone:'red',
+        label:'Outflow',
+        value: fmt(outflow),
+        badge: outflow ? 'Spent / moved out' : 'No outflow',
+        meta:`Expenses, investments, and transfers total ${fmt(outflow)} in the current filtered view.`
+      })}
+      ${buildMetricCard({
+        tone:'green',
+        label:'Inflow',
+        value: fmt(inflow),
+        badge: inflow ? 'Money in' : 'No inflow',
+        meta:`Income entries within the same filter set contribute ${fmt(inflow)} in inflow.`
+      })}
+      ${buildMetricCard({
+        tone:'blue',
+        label:'Monthly Average',
+        value: formatSignedCurrency(monthlyAverage),
+        badge: monthlyTrend.length ? `${monthlyTrend.length} month${monthlyTrend.length===1?'':'s'}` : 'No trend yet',
+        meta:`Average monthly net movement recalculated from the filtered transaction stream.`
+      })}
+    `;
+  }
+
+  if(filterSummary){
+    filterSummary.textContent = activeFilterCount
+      ? `Showing ${items.length} transaction${items.length===1?'':'s'} filtered by ${activeFilterCount} selection${activeFilterCount===1?'':'s'}.`
+      : 'Slice by type, category, bank, mode, or exact card. Totals and monthly trend update instantly from the same filtered set.';
+  }
+  if(resultMeta){
+    resultMeta.textContent = `${items.length} of ${DATA.transactions.length} transactions visible${activeFilterCount ? ` · ${activeFilterCount} active filter${activeFilterCount===1?'':'s'}` : ''}.`;
+  }
+  if(tableNote){
+    tableNote.textContent = monthlyTrend.length
+      ? `Monthly trend spans ${monthlyTrend.length} month${monthlyTrend.length===1?'':'s'} and the latest visible month is ${monthlyTrend[monthlyTrend.length - 1].label}.`
+      : 'Latest transactions across all sources.';
+  }
+
+  renderTransactionTrendChart(monthlyTrend);
+  renderTransactionTrendSummary(monthlyTrend, filters);
+
   const tbody = document.getElementById('txBody');
-  if(!items.length){tbody.innerHTML='<tr><td colspan="8" class="empty-state">No transactions yet. Click "+ Add Transaction" to start.</td></tr>';return;}
+  if(!items.length){
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${DATA.transactions.length ? 'No transactions match the current filters. Try Reset Filters.' : 'No transactions yet. Click "+ Add Transaction" to start.'}</td></tr>`;
+    return;
+  }
   tbody.innerHTML = items.map(t=>{
-    const isExp = t.type==='expense';
+    const signedAmount = getTransactionSignedAmount(t);
+    const amountClass = signedAmount >= 0 ? 'pos' : 'neg';
+    const pillTone = t.type === 'expense'
+      ? 'r'
+      : t.type === 'income'
+        ? 'g'
+        : t.type === 'investment'
+          ? 'p'
+          : 'b';
     const paymentLabel = [t.payment_mode, t.payment_source].filter(Boolean).join(' · ');
     return `<tr class="clickable" onclick="showDetail('transactions','${t.id}')">
       <td>${dateStr(t.date)}</td>
-      <td><span class="pill pill-${isExp?'r':t.type==='investment'?'g':'b'}">${t.type||'—'}</span></td>
+      <td><span class="pill pill-${pillTone}">${t.type||'—'}</span></td>
       <td>${t.category||'—'}</td>
       <td>${t.description||'—'}</td>
-      <td class="${isExp?'neg':'pos'}">${isExp?'-':''}${fmt(Math.abs(t.amount))}</td>
+      <td class="${amountClass}">${formatSignedCurrency(signedAmount)}</td>
       <td>${t.account||'—'}</td>
       <td>${paymentLabel||'—'}</td>
       <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editItem('transactions','${t.id}')">✎</button></td>
     </tr>`;
   }).join('');
 }
-document.getElementById('txFilter')?.addEventListener('change',renderTransactions);
+['txFilter','txCategoryFilter','txAccountFilter','txModeFilter','txCardFilter'].forEach((id)=>{
+  document.getElementById(id)?.addEventListener('change', renderTransactions);
+});
+document.getElementById('txResetFilters')?.addEventListener('click', resetTransactionFilters);
 
 // ═══════════════════════════════════════════
 //  ACCOUNTS
