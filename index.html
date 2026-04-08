@@ -156,6 +156,32 @@ tr.clickable:hover td{color:var(--text);background:rgba(212,168,83,.03)}
 .transaction-trend-track{height:9px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden;position:relative}
 .transaction-trend-fill{height:100%;border-radius:999px}
 .transaction-table-note{font-size:.74rem;color:var(--text3)}
+.overview-board{display:grid;gap:.9rem}
+.overview-callout{padding:1rem 1.05rem;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.overview-callout h4{font-size:.92rem;color:var(--text);margin-bottom:.28rem}
+.overview-callout p{font-size:.76rem;color:var(--text2);line-height:1.58}
+.overview-signal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.overview-signal{padding:.9rem 1rem;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+.overview-signal .label{display:block;font-size:.64rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:.3rem}
+.overview-signal .value{display:block;font-size:1.02rem;font-weight:700;color:var(--text);margin-bottom:.18rem}
+.overview-signal .copy{display:block;font-size:.72rem;color:var(--text2);line-height:1.5}
+.overview-list{display:grid;gap:.65rem}
+.overview-list-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.75rem;align-items:center;padding:.72rem .85rem;border-radius:14px;background:rgba(255,255,255,.024);border:1px solid rgba(255,255,255,.06)}
+.overview-list-main{min-width:0}
+.overview-list-title{font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.overview-list-meta{margin-top:.16rem;font-size:.68rem;color:var(--text3);line-height:1.45}
+.overview-list-value{text-align:right}
+.overview-list-value strong{display:block;font-size:.82rem;color:var(--text)}
+.overview-list-value span{display:block;font-size:.68rem;color:var(--text3);margin-top:.14rem}
+.overview-progress{margin-top:.5rem;height:7px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}
+.overview-progress span{display:block;height:100%;border-radius:999px}
+.overview-caption{margin-top:.85rem;font-size:.72rem;color:var(--text3);line-height:1.55}
+.overview-section-stack{display:grid;gap:.85rem;margin-top:.9rem}
+.overview-mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+.overview-mini-card{padding:.8rem .85rem;border-radius:14px;background:rgba(255,255,255,.024);border:1px solid rgba(255,255,255,.06)}
+.overview-mini-card .label{display:block;font-size:.64rem;text-transform:uppercase;letter-spacing:.95px;color:var(--text3);margin-bottom:.28rem}
+.overview-mini-card .value{display:block;font-size:.92rem;font-weight:700;color:var(--text)}
+.overview-mini-card .meta{display:block;margin-top:.16rem;font-size:.68rem;color:var(--text3);line-height:1.45}
 .section-kpis{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.74rem;color:var(--text3)}
 .section-kpis strong{color:var(--text)}
 .inline-broker-pill{display:inline-flex;align-items:center;padding:.14rem .48rem;border-radius:999px;background:rgba(167,139,250,.12);color:var(--purple);font-size:.65rem;font-weight:600}
@@ -394,6 +420,9 @@ tr.clickable:hover td{color:var(--text);background:rgba(212,168,83,.03)}
   .portfolio-control-actions{width:100%}
   .portfolio-filter-select{flex:1;min-width:0}
   .section-kpis{gap:.55rem}
+  .overview-signal-grid,.overview-mini-grid{grid-template-columns:1fr}
+  .overview-list-row{grid-template-columns:1fr}
+  .overview-list-value{text-align:left}
 }
 
 @media(min-width:861px){
@@ -540,12 +569,12 @@ body.auth-ready .auth-screen{display:none}
       <div class="hero-subtitle" id="overviewHeroSubtitle">See allocation, cash flow, and portfolio momentum in one calm control surface.</div>
       <div class="hero-chip-row" id="overviewHeroChips"></div>
       <div class="hero-actions">
-        <button class="btn btn-gold hero-action-btn" onclick="switchTab('transactions')">Open Cash Flow</button>
-        <button class="btn btn-outline hero-action-btn" onclick="switchTab('scanner')">Scan New Statement</button>
+        <button class="btn btn-gold hero-action-btn" onclick="switchTab('transactions')">Review Cash Flow</button>
+        <button class="btn btn-outline hero-action-btn" onclick="switchTab('scanner')">Scan Fresh Statement</button>
       </div>
     </div>
     <div class="desktop-hero-side">
-      <div class="hero-side-title">Current Snapshot</div>
+      <div class="hero-side-title">Wealth Snapshot</div>
       <div class="hero-side-value gold" id="overviewHeroValue">₹0</div>
       <div class="hero-side-grid">
         <div class="hero-side-stat">
@@ -563,12 +592,49 @@ body.auth-ready .auth-screen{display:none}
   <div class="sstrip" id="overviewStrip"></div>
   <div class="g g4" id="overviewCards"></div>
   <div class="g g23" style="margin-top:1rem">
-    <div class="card"><div class="ct">Monthly Trend</div><div class="chw h250"><canvas id="chOvTrend"></canvas></div></div>
-    <div class="card"><div class="ct">Asset Allocation</div><div class="chw h250"><canvas id="chOvAlloc"></canvas></div></div>
+    <div class="card">
+      <div class="ct">Money Velocity</div>
+      <div class="chw h300"><canvas id="chOvTrend"></canvas></div>
+      <div class="overview-caption" id="overviewTrendCaption">Income, expenses, and investment deployment across recent months.</div>
+    </div>
+    <div class="card">
+      <div class="ct">Planner's Brief</div>
+      <div id="overviewPlanBoard"></div>
+    </div>
   </div>
   <div class="g g2" style="margin-top:1rem">
-    <div class="card"><div class="ct">Income vs Expenses</div><div class="chw h250"><canvas id="chOvIncExp"></canvas></div></div>
-    <div class="card"><div class="ct">Top Holdings</div><div id="topHoldings"></div></div>
+    <div class="card">
+      <div class="ct">Income Architecture</div>
+      <div class="chw h250"><canvas id="chOvIncomeMix"></canvas></div>
+      <div id="overviewIncomeBreakdown" class="overview-section-stack"></div>
+    </div>
+    <div class="card">
+      <div class="ct">Expense Pressure Map</div>
+      <div class="chw h250"><canvas id="chOvExpenseMix"></canvas></div>
+      <div id="overviewExpenseBreakdown" class="overview-section-stack"></div>
+    </div>
+  </div>
+  <div class="g g2" style="margin-top:1rem">
+    <div class="card">
+      <div class="ct">Cash Use Map</div>
+      <div class="chw h250"><canvas id="chOvIncExp"></canvas></div>
+      <div class="overview-caption" id="overviewCashUseCaption">How your current ledger is being consumed between spending, investing, and transfers.</div>
+    </div>
+    <div class="card">
+      <div class="ct">Capital Deployment</div>
+      <div class="chw h250"><canvas id="chOvAlloc"></canvas></div>
+      <div id="overviewWealthBoard" class="overview-section-stack"></div>
+    </div>
+  </div>
+  <div class="g g2" style="margin-top:1rem">
+    <div class="card">
+      <div class="ct">Top Holdings</div>
+      <div id="topHoldings"></div>
+    </div>
+    <div class="card">
+      <div class="ct">Income Source Ladder</div>
+      <div id="overviewIncomeSources"></div>
+    </div>
   </div>
 </div>
 
@@ -1956,27 +2022,167 @@ function renderTab(t){
 //  OVERVIEW
 // ═══════════════════════════════════════════
 function renderOverview(){
-  const totalAccBal = DATA.accounts.reduce((s,a)=>s+Number(a.balance||0),0);
-  const totalStockVal = DATA.stocks.reduce((s,x)=>s+Number(x.current_value||0),0);
-  const totalStockInv = DATA.stocks.reduce((s,x)=>s+Number(x.invested||0),0);
-  const totalMFVal = DATA.mutual_funds.reduce((s,x)=>s+Number(x.current_value||0),0);
-  const totalMFInv = DATA.mutual_funds.reduce((s,x)=>s+Number(x.invested||0),0);
-  const totalFD = DATA.fixed_deposits.reduce((s,x)=>s+Number(x.principal||0),0);
-  const netWorth = totalAccBal+totalStockVal+totalMFVal+totalFD;
-  const totalInv = totalStockInv+totalMFInv;
-  const totalPnL = (totalStockVal-totalStockInv)+(totalMFVal-totalMFInv);
-  const totalIncome = DATA.income.reduce((s,x)=>s+Number(x.net_amount||0),0);
-  const totalExp = DATA.transactions.filter(x=>x.type==='expense').reduce((s,x)=>s+Math.abs(Number(x.amount||0)),0);
+  const totalAccBal = DATA.accounts.reduce((sum, account)=>sum + Number(account.balance || 0), 0);
+  const totalStockVal = DATA.stocks.reduce((sum, stock)=>sum + Number(stock.current_value || 0), 0);
+  const totalStockInv = DATA.stocks.reduce((sum, stock)=>sum + Number(stock.invested || 0), 0);
+  const totalMFVal = DATA.mutual_funds.reduce((sum, fund)=>sum + Number(fund.current_value || 0), 0);
+  const totalMFInv = DATA.mutual_funds.reduce((sum, fund)=>sum + Number(fund.invested || 0), 0);
+  const totalFD = DATA.fixed_deposits.reduce((sum, fd)=>sum + Number(fd.principal || 0), 0);
+  const netWorth = totalAccBal + totalStockVal + totalMFVal + totalFD;
+  const totalInvestedBasis = totalStockInv + totalMFInv;
+  const totalPnL = (totalStockVal - totalStockInv) + (totalMFVal - totalMFInv);
   const totalHoldings = DATA.stocks.length + DATA.mutual_funds.length;
-  const monthlyFlow = totalIncome - totalExp;
+  const incomeEntries = [...DATA.income];
+  const expenseTx = DATA.transactions.filter((item)=>item.type === 'expense');
+  const investmentTx = DATA.transactions.filter((item)=>item.type === 'investment');
+  const transferTx = DATA.transactions.filter((item)=>item.type === 'transfer');
+  const incomeTx = DATA.transactions.filter((item)=>item.type === 'income');
+  const totalNetIncome = incomeEntries.reduce((sum, item)=>sum + Number(item.net_amount || 0), 0);
+  const totalTxIncome = incomeTx.reduce((sum, item)=>sum + getTransactionAmountValue(item), 0);
+  const totalInflow = totalNetIncome + totalTxIncome;
+  const totalExpense = expenseTx.reduce((sum, item)=>sum + getTransactionAmountValue(item), 0);
+  const totalInvestmentFlow = investmentTx.reduce((sum, item)=>sum + getTransactionAmountValue(item), 0);
+  const totalTransferFlow = transferTx.reduce((sum, item)=>sum + getTransactionAmountValue(item), 0);
+  const deployableSurplus = totalInflow - totalExpense;
+  const freeCashAfterDeploy = totalInflow - totalExpense - totalInvestmentFlow - totalTransferFlow;
   const totalLiquid = totalAccBal + totalFD;
+  const scansCount = readScans().length;
+
   const assetRows = [
     { name:'Banks', value:totalAccBal, color:'linear-gradient(90deg,#60a5fa,#22d3ee)' },
     { name:'Stocks', value:totalStockVal, color:'linear-gradient(90deg,#d4a853,#f0d48a)' },
     { name:'Funds', value:totalMFVal, color:'linear-gradient(90deg,#34d399,#22c55e)' },
     { name:'FDs', value:totalFD, color:'linear-gradient(90deg,#a78bfa,#8b5cf6)' }
-  ].filter(row=>row.value>0);
+  ].filter((row)=>row.value > 0);
   const allocDenominator = assetRows.reduce((sum, row)=>sum + row.value, 0) || 1;
+
+  const monthMap = new Map();
+  const ensureMonthBucket = (dateValue)=>{
+    const date = new Date(dateValue || '');
+    if(Number.isNaN(date.getTime())) return null;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}`;
+    if(!monthMap.has(key)){
+      monthMap.set(key, {
+        key,
+        label: date.toLocaleDateString('en-IN', { month:'short', year:'2-digit' }),
+        income: 0,
+        expense: 0,
+        investment: 0,
+        transfer: 0
+      });
+    }
+    return monthMap.get(key);
+  };
+
+  const addToMap = (map, key, value)=>{
+    const label = String(key || '').trim() || 'Other';
+    map[label] = (map[label] || 0) + Number(value || 0);
+  };
+
+  const classifyIncome = (entry={})=>{
+    const hay = [entry.type, entry.source, entry.description, entry.category].filter(Boolean).join(' ').toLowerCase();
+    if(/salary|payroll|employer|payslip/.test(hay)) return 'Salary';
+    if(/dividend/.test(hay)) return 'Dividend';
+    if(/interest/.test(hay)) return 'Interest';
+    if(/cashback|reward|point|points|voucher|refund/.test(hay)) return 'Rewards / Cashback';
+    if(/gift/.test(hay)) return 'Gifts';
+    if(/loan|borrow/.test(hay)) return 'Loans';
+    if(/pnl|profit|gain|capital gain|asset/.test(hay)) return 'Asset P&L';
+    if(/rental|rent/.test(hay)) return 'Rental';
+    if(/freelance|consult/.test(hay)) return 'Freelance';
+    if(/business/.test(hay)) return 'Business';
+    return entry.type || 'Other';
+  };
+
+  const sortMapEntries = (map, limit=6)=>{
+    const entries = Object.entries(map).filter(([, value])=>Number(value || 0) > 0).sort((a,b)=>b[1]-a[1]);
+    if(entries.length <= limit) return entries;
+    const head = entries.slice(0, limit - 1);
+    const rest = entries.slice(limit - 1).reduce((sum, [, value])=>sum + value, 0);
+    return [...head, ['Others', rest]];
+  };
+
+  const shareText = (value, total)=> total ? `${Math.round((value / total) * 100)}%` : '0%';
+  const pctWidth = (value, total)=> `${Math.max(6, Math.min(100, total ? (value / total) * 100 : 0))}%`;
+  const signalCard = (label, value, copy, tone='')=>`
+    <div class="overview-signal">
+      <span class="label">${label}</span>
+      <span class="value ${tone}">${value}</span>
+      <span class="copy">${copy}</span>
+    </div>
+  `;
+  const miniCard = (label, value, meta)=>`
+    <div class="overview-mini-card">
+      <span class="label">${label}</span>
+      <span class="value">${value}</span>
+      <span class="meta">${meta}</span>
+    </div>
+  `;
+
+  const incomeBucketMap = {};
+  const incomeSourceMap = {};
+  incomeEntries.forEach((entry)=>{
+    const amount = Number(entry.net_amount || 0);
+    if(!amount) return;
+    addToMap(incomeBucketMap, classifyIncome(entry), amount);
+    addToMap(incomeSourceMap, entry.source || entry.type || entry.description || 'Other', amount);
+    const bucket = ensureMonthBucket(entry.date);
+    if(bucket) bucket.income += amount;
+  });
+  incomeTx.forEach((entry)=>{
+    const amount = getTransactionAmountValue(entry);
+    if(!amount) return;
+    addToMap(incomeBucketMap, classifyIncome(entry), amount);
+    addToMap(incomeSourceMap, entry.account || entry.category || entry.description || 'Transaction Income', amount);
+    const bucket = ensureMonthBucket(entry.date);
+    if(bucket) bucket.income += amount;
+  });
+
+  const expenseCategoryMap = {};
+  const expenseModeMap = {};
+  expenseTx.forEach((entry)=>{
+    const amount = getTransactionAmountValue(entry);
+    if(!amount) return;
+    addToMap(expenseCategoryMap, entry.category || 'Other', amount);
+    addToMap(expenseModeMap, entry.payment_mode || 'Unspecified', amount);
+    const bucket = ensureMonthBucket(entry.date);
+    if(bucket) bucket.expense += amount;
+  });
+  investmentTx.forEach((entry)=>{
+    const bucket = ensureMonthBucket(entry.date);
+    if(bucket) bucket.investment += getTransactionAmountValue(entry);
+  });
+  transferTx.forEach((entry)=>{
+    const bucket = ensureMonthBucket(entry.date);
+    if(bucket) bucket.transfer += getTransactionAmountValue(entry);
+  });
+
+  const monthlyRows = [...monthMap.values()]
+    .sort((a,b)=>a.key.localeCompare(b.key))
+    .slice(-8)
+    .map((row)=>({
+      ...row,
+      net: row.income - row.expense - row.investment - row.transfer
+    }));
+
+  const salaryIncome = incomeBucketMap['Salary'] || 0;
+  const dividendIncome = incomeBucketMap['Dividend'] || 0;
+  const interestIncome = incomeBucketMap['Interest'] || 0;
+  const rentalIncome = incomeBucketMap['Rental'] || 0;
+  const rewardsIncome = incomeBucketMap['Rewards / Cashback'] || 0;
+  const giftsIncome = incomeBucketMap['Gifts'] || 0;
+  const loanIncome = incomeBucketMap['Loans'] || 0;
+  const assetPnlIncome = incomeBucketMap['Asset P&L'] || 0;
+  const passiveIncome = dividendIncome + interestIncome + rentalIncome;
+  const flexibleIncome = Math.max(0, totalInflow - salaryIncome);
+  const avgMonthlyExpense = monthlyRows.length ? monthlyRows.reduce((sum, row)=>sum + row.expense, 0) / monthlyRows.length : 0;
+  const avgMonthlyInvestment = monthlyRows.length ? monthlyRows.reduce((sum, row)=>sum + row.investment, 0) / monthlyRows.length : 0;
+  const cashRunwayMonths = avgMonthlyExpense ? totalLiquid / avgMonthlyExpense : 0;
+  const savingsRate = totalInflow ? (deployableSurplus / totalInflow) * 100 : 0;
+  const investmentRate = totalInflow ? (totalInvestmentFlow / totalInflow) * 100 : 0;
+  const dominantIncomeBucket = sortMapEntries(incomeBucketMap, 2)[0];
+  const dominantExpenseBucket = sortMapEntries(expenseCategoryMap, 2)[0];
+  const dominantExpenseMode = sortMapEntries(expenseModeMap, 2)[0];
 
   const heroTitle = document.getElementById('overviewHeroTitle');
   const heroSubtitle = document.getElementById('overviewHeroSubtitle');
@@ -1985,26 +2191,29 @@ function renderOverview(){
   const heroDelta = document.getElementById('overviewHeroDelta');
   const heroFlow = document.getElementById('overviewHeroFlow');
   const heroAlloc = document.getElementById('overviewHeroAlloc');
-  if(heroTitle) heroTitle.textContent = netWorth ? 'A premium command center for every rupee you own.' : 'Start building your private wealth command center.';
-  if(heroSubtitle) heroSubtitle.textContent = netWorth
-    ? `Track ${DATA.accounts.length} accounts, ${totalHoldings} holdings, and your monthly money rhythm with a cleaner desktop view built for faster decisions.`
-    : 'Add your accounts, investments, income, and statements to unlock a richer operating view of your finances.';
+  if(heroTitle) heroTitle.textContent = netWorth
+    ? 'A full money map across income, spending, investing, and compounding.'
+    : 'Start building a complete operating view of your money system.';
+  if(heroSubtitle) heroSubtitle.textContent = totalInflow || totalExpense || totalInvestedBasis
+    ? `Tracked inflows sit at ${fmt(totalInflow)}, expense burn at ${fmt(totalExpense)}, deployment into investments at ${fmt(totalInvestmentFlow)}, and unrealized asset delta at ${formatSignedCurrency(totalPnL)}.`
+    : 'Add income sources, expenses, investments, and statement scans to unlock planning-grade financial analysis.';
   if(heroChips){
     heroChips.innerHTML = [
-      `<span class="hero-chip"><strong>${DATA.accounts.length}</strong> active account${DATA.accounts.length===1?'':'s'}</span>`,
+      `<span class="hero-chip"><strong>${Object.keys(incomeSourceMap).length || 0}</strong> income source${Object.keys(incomeSourceMap).length===1?'':'s'}</span>`,
+      `<span class="hero-chip"><strong>${Object.keys(expenseCategoryMap).length || 0}</strong> expense categorie${Object.keys(expenseCategoryMap).length===1?'y':'s'}</span>`,
       `<span class="hero-chip"><strong>${totalHoldings}</strong> live holding${totalHoldings===1?'':'s'}</span>`,
-      `<span class="hero-chip"><strong>${readScans().length}</strong> recent scan${readScans().length===1?'':'s'}</span>`,
+      `<span class="hero-chip"><strong>${scansCount}</strong> recent scan${scansCount===1?'':'s'}</span>`,
       `<span class="hero-chip"><strong>${AUTH_STATE.user?.email ? 'Cloud synced' : 'Local mode'}</strong>${AUTH_STATE.user?.email ? ` as ${AUTH_STATE.user.email}` : ''}</span>`
     ].join('');
   }
   if(heroValue) heroValue.textContent = fmt(netWorth);
   if(heroDelta){
-    heroDelta.textContent = `${totalPnL>=0?'+':''}${fmt(totalPnL)}`;
+    heroDelta.textContent = formatSignedCurrency(totalPnL);
     heroDelta.className = `value ${totalPnL>=0?'pos':'neg'}`;
   }
   if(heroFlow){
-    heroFlow.textContent = `${monthlyFlow>=0?'+':''}${fmt(monthlyFlow)}`;
-    heroFlow.className = `value ${monthlyFlow>=0?'pos':'neg'}`;
+    heroFlow.textContent = formatSignedCurrency(deployableSurplus);
+    heroFlow.className = `value ${deployableSurplus>=0?'pos':'neg'}`;
   }
   if(heroAlloc){
     heroAlloc.innerHTML = assetRows.length ? assetRows.map((row)=>{
@@ -2016,65 +2225,307 @@ function renderOverview(){
           <span>${fmt(row.value)}</span>
         </div>
       `;
-    }).join('') : `<div class="hero-side-stat"><span class="label">Allocation</span><span class="value" style="font-weight:600;color:var(--text2)">Add holdings to see allocation</span></div>`;
+    }).join('') : `<div class="hero-side-stat"><span class="label">Allocation</span><span class="value" style="font-weight:600;color:var(--text2)">Add holdings to see deployment</span></div>`;
   }
 
   document.getElementById('overviewStrip').innerHTML = `
     <div class="si"><span class="sl">Net Worth</span><span class="sv gold" style="background:linear-gradient(135deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent">${fmt(netWorth)}</span></div>
-    <div class="si"><span class="sl">Total Invested</span><span class="sv">${fmt(totalInv)}</span></div>
-    <div class="si"><span class="sl">Overall P&L</span><span class="sv ${totalPnL>=0?'pos':'neg'}">${fmt(totalPnL)}</span></div>
-    <div class="si"><span class="sl">Bank Balance</span><span class="sv">${fmt(totalAccBal)}</span></div>
-    <div class="si"><span class="sl">Total Income</span><span class="sv" style="color:var(--green)">${fmt(totalIncome)}</span></div>
-    <div class="si"><span class="sl">Total Expenses</span><span class="sv" style="color:var(--red)">${fmt(totalExp)}</span></div>
+    <div class="si"><span class="sl">Liquid Reserve</span><span class="sv">${fmt(totalLiquid)}</span></div>
+    <div class="si"><span class="sl">Total Inflow</span><span class="sv" style="color:var(--green)">${fmt(totalInflow)}</span></div>
+    <div class="si"><span class="sl">Expense Burn</span><span class="sv" style="color:var(--red)">${fmt(totalExpense)}</span></div>
+    <div class="si"><span class="sl">Investment Flow</span><span class="sv">${fmt(totalInvestmentFlow)}</span></div>
+    <div class="si"><span class="sl">Passive Income</span><span class="sv">${fmt(passiveIncome)}</span></div>
+    <div class="si"><span class="sl">Rewards / Gifts</span><span class="sv">${fmt(rewardsIncome + giftsIncome)}</span></div>
+    <div class="si"><span class="sl">Asset P&L</span><span class="sv ${totalPnL>=0?'pos':'neg'}">${formatSignedCurrency(totalPnL)}</span></div>
   `;
 
   document.getElementById('overviewCards').innerHTML = `
     ${buildMetricCard({
-      tone:'gold',
-      label:'Stocks Value',
-      value:fmt(totalStockVal),
-      badge: totalStockInv ? fmtPct(((totalStockVal-totalStockInv)/Math.max(totalStockInv,1))*100) : 'Fresh',
-      meta:`${DATA.stocks.length} equity positions tracked across Indian and global holdings.`
-    })}
-    ${buildMetricCard({
       tone:'green',
-      label:'Mutual Funds',
-      value:fmt(totalMFVal),
-      badge: totalMFInv ? fmtPct(((totalMFVal-totalMFInv)/Math.max(totalMFInv,1))*100) : 'Fresh',
-      meta:`${DATA.mutual_funds.length} fund positions with ${fmt(totalMFInv)} invested capital.`
+      label:'Income Engine',
+      value:fmt(totalInflow),
+      badge: `${Object.keys(incomeSourceMap).length || 0} tracked sources`,
+      meta:`Salary contributes ${fmt(salaryIncome)} while flexible and non-salary inflows add ${fmt(flexibleIncome)}.`
     })}
     ${buildMetricCard({
-      tone:'blue',
-      label:'Fixed Deposits',
-      value:fmt(totalFD),
-      badge: totalFD ? `${DATA.fixed_deposits.length} active` : 'Idle',
-      meta:`Liquid plus locked reserves combine to ${fmt(totalLiquid)} across cash and deposits.`
+      tone:'red',
+      label:'Expense Burn',
+      value:fmt(totalExpense),
+      badge: dominantExpenseBucket ? `Top: ${dominantExpenseBucket[0]}` : 'No expense pressure',
+      meta:`Average monthly burn is ${fmt(avgMonthlyExpense)} and the heaviest payment mode is ${dominantExpenseMode ? dominantExpenseMode[0] : 'not set'}.`
     })}
     ${buildMetricCard({
-      tone:'purple',
-      label:'Holdings Count',
-      value:String(totalHoldings),
-      badge: totalHoldings ? `${DATA.stocks.length} stocks / ${DATA.mutual_funds.length} funds` : 'Start adding',
-      meta:`Monthly flow is ${monthlyFlow>=0?'positive':'negative'} at ${fmt(monthlyFlow)} after expenses.`
+      tone:'gold',
+      label:'Capital Deployment',
+      value:fmt(totalInvestedBasis),
+      badge: `${investmentRate.toFixed(0)}% of inflow deployed`,
+      meta:`Ledger deployment into investments totals ${fmt(totalInvestmentFlow)} while current market value sits at ${fmt(totalStockVal + totalMFVal)}.`
+    })}
+    ${buildMetricCard({
+      tone: freeCashAfterDeploy >= 0 ? 'blue' : 'purple',
+      label:'Planning Buffer',
+      value:formatSignedCurrency(freeCashAfterDeploy),
+      badge: avgMonthlyExpense ? `${cashRunwayMonths.toFixed(cashRunwayMonths < 10 ? 1 : 0)} months runway` : 'Runway unavailable',
+      meta:`After expenses, investments, and transfers, your liquid system is ${freeCashAfterDeploy>=0?'adding':'drawing'} ${fmt(Math.abs(freeCashAfterDeploy))}.`
     })}
   `;
 
-  // Asset Allocation chart
-  const allocData = [totalAccBal,totalStockVal,totalMFVal,totalFD].filter(x=>x>0);
-  const allocLabels = ['Banks','Stocks','Mutual Funds','Fixed Deposits'].filter((_,i)=>[totalAccBal,totalStockVal,totalMFVal,totalFD][i]>0);
-  destroyChart('chOvAlloc');
-  if(allocData.length){
-    CHARTS.chOvAlloc = new Chart(document.getElementById('chOvAlloc'),{type:'doughnut',data:{labels:allocLabels,datasets:[{data:allocData,backgroundColor:['#a78bfa','#d4a853','#34d399','#60a5fa'],borderWidth:0,borderRadius:4}]},options:{cutout:'62%',plugins:{legend:{position:'right',labels:{padding:10,font:{size:10}}}}}});
+  const planningNarrative = totalInflow
+    ? `Your tracked inflow engine is led by ${salaryIncome ? `salary at ${fmt(salaryIncome)}` : 'non-salary credits'}, with passive inflows at ${fmt(passiveIncome)} and rewards, gifts, or one-off credits at ${fmt(rewardsIncome + giftsIncome + loanIncome + assetPnlIncome)}.`
+    : 'Start recording salary slips, dividends, rewards, gifts, loans, and other income events so the planning layer can become more descriptive.';
+  document.getElementById('overviewPlanBoard').innerHTML = `
+    <div class="overview-board">
+      <div class="overview-callout">
+        <h4>Executive Readout</h4>
+        <p>${planningNarrative} Expense burn is ${fmt(totalExpense)}, deployment into investments is ${fmt(totalInvestmentFlow)}, and the system currently leaves ${formatSignedCurrency(freeCashAfterDeploy)} after all tracked outflows.</p>
+      </div>
+      <div class="overview-signal-grid">
+        ${signalCard('Deployable Surplus', formatSignedCurrency(deployableSurplus), `${savingsRate.toFixed(0)}% of tracked inflow remains after pure expenses.`, deployableSurplus>=0?'pos':'neg')}
+        ${signalCard('Investment Pace', fmt(totalInvestmentFlow), `${investmentRate.toFixed(0)}% of inflow is being redirected into investments.`, '')}
+        ${signalCard('Passive Income', fmt(passiveIncome), `Dividends, interest, and rent together now contribute ${shareText(passiveIncome, totalInflow)} of inflow.`, passiveIncome ? 'pos' : '')}
+        ${signalCard('Rewards & Windfalls', fmt(rewardsIncome + giftsIncome), `Credit card points, cashback, gifts, and similar credits build an extra ${shareText(rewardsIncome + giftsIncome, totalInflow)} layer.`, '')}
+        ${signalCard('Loan-Backed Inflows', fmt(loanIncome), loanIncome ? 'Loan credits are visible and should stay separate from recurring income while planning.' : 'No borrowing credits are currently tagged in your ledger.', '')}
+        ${signalCard('Liquidity Runway', avgMonthlyExpense ? `${cashRunwayMonths.toFixed(cashRunwayMonths < 10 ? 1 : 0)} months` : '—', avgMonthlyExpense ? `Based on an average monthly burn of ${fmt(avgMonthlyExpense)}.` : 'Needs more expense history to estimate runway.', '')}
+      </div>
+    </div>
+  `;
+
+  const incomeMixEntries = sortMapEntries(incomeBucketMap, 7);
+  const incomeMixTotal = incomeMixEntries.reduce((sum, [, value])=>sum + value, 0) || 1;
+  document.getElementById('overviewIncomeBreakdown').innerHTML = `
+    <div class="overview-mini-grid">
+      ${miniCard('Salary Core', fmt(salaryIncome), `${shareText(salaryIncome, totalInflow)} of tracked inflow`)}
+      ${miniCard('Passive Income', fmt(passiveIncome), 'Dividend, interest, and rent')}
+      ${miniCard('Flexible Income', fmt(flexibleIncome), 'Freelance, rewards, gifts, gains, and others')}
+      ${miniCard('Source Coverage', String(Object.keys(incomeSourceMap).length || 0), 'Unique named inflow sources recorded')}
+    </div>
+    <div class="overview-list">
+      ${incomeMixEntries.length ? incomeMixEntries.map(([label, value])=>`
+        <div class="overview-list-row">
+          <div class="overview-list-main">
+            <div class="overview-list-title">${label}</div>
+            <div class="overview-list-meta">${shareText(value, incomeMixTotal)} of tracked inflow</div>
+            <div class="overview-progress"><span style="width:${pctWidth(value, incomeMixTotal)};background:linear-gradient(90deg,rgba(52,211,153,.35),rgba(52,211,153,.95))"></span></div>
+          </div>
+          <div class="overview-list-value"><strong>${fmt(value)}</strong><span>${shareText(value, incomeMixTotal)}</span></div>
+        </div>
+      `).join('') : '<div class="empty-state"><h4>No income mix yet</h4><p>Add salary, dividends, gifts, rewards, loans, or asset gains to build the inflow map.</p></div>'}
+    </div>
+    <div class="overview-caption">This mix automatically groups salary slips, dividends, credit card points, gifts, loans, and asset P&amp;L whenever they are logged in your income ledger.</div>
+  `;
+
+  const expenseEntries = sortMapEntries(expenseCategoryMap, 7);
+  const expenseTotalForShare = expenseEntries.reduce((sum, [, value])=>sum + value, 0) || 1;
+  document.getElementById('overviewExpenseBreakdown').innerHTML = `
+    <div class="overview-mini-grid">
+      ${miniCard('Expense Burn', fmt(totalExpense), `${expenseTx.length} expense entries tracked`)}
+      ${miniCard('Investment Outflow', fmt(totalInvestmentFlow), `${investmentTx.length} investment transactions`)}
+      ${miniCard('Transfers', fmt(totalTransferFlow), `${transferTx.length} internal movements`)}
+      ${miniCard('Avg Monthly Burn', fmt(avgMonthlyExpense), dominantExpenseBucket ? `Largest drag: ${dominantExpenseBucket[0]}` : 'Waiting for category history')}
+    </div>
+    <div class="overview-list">
+      ${expenseEntries.length ? expenseEntries.map(([label, value])=>`
+        <div class="overview-list-row">
+          <div class="overview-list-main">
+            <div class="overview-list-title">${label}</div>
+            <div class="overview-list-meta">${shareText(value, expenseTotalForShare)} of expense burn</div>
+            <div class="overview-progress"><span style="width:${pctWidth(value, expenseTotalForShare)};background:linear-gradient(90deg,rgba(248,113,113,.3),rgba(248,113,113,.92))"></span></div>
+          </div>
+          <div class="overview-list-value"><strong>${fmt(value)}</strong><span>${shareText(value, expenseTotalForShare)}</span></div>
+        </div>
+      `).join('') : '<div class="empty-state"><h4>No expense map yet</h4><p>Once your transaction ledger fills in, the pressure points will surface here.</p></div>'}
+    </div>
+    <div class="overview-caption">Use this section to see whether spending pressure is coming from lifestyle categories, bill commitments, or a surge in investment deployment.</div>
+  `;
+
+  document.getElementById('overviewWealthBoard').innerHTML = `
+    <div class="overview-mini-grid">
+      ${miniCard('Liquid Reserve', fmt(totalLiquid), 'Cash plus fixed deposits')}
+      ${miniCard('Market Assets', fmt(totalStockVal + totalMFVal), `${totalHoldings} live holdings tracked`)}
+      ${miniCard('Invested Basis', fmt(totalInvestedBasis), 'Capital currently at work in markets')}
+      ${miniCard('Asset Delta', formatSignedCurrency(totalPnL), totalPnL>=0 ? 'Current holdings are ahead of cost basis' : 'Current holdings are below cost basis')}
+    </div>
+    <div class="overview-list">
+      ${assetRows.length ? assetRows.map((row)=>`
+        <div class="overview-list-row">
+          <div class="overview-list-main">
+            <div class="overview-list-title">${row.name}</div>
+            <div class="overview-list-meta">${shareText(row.value, allocDenominator)} of visible net worth</div>
+            <div class="overview-progress"><span style="width:${pctWidth(row.value, allocDenominator)};background:${row.color}"></span></div>
+          </div>
+          <div class="overview-list-value"><strong>${fmt(row.value)}</strong><span>${shareText(row.value, allocDenominator)}</span></div>
+        </div>
+      `).join('') : '<div class="empty-state"><h4>No wealth allocation yet</h4><p>Add accounts, deposits, and investments to see deployment across assets.</p></div>'}
+    </div>
+    <div class="overview-caption">This combines liquid cash, fixed deposits, stocks, and mutual funds so you can judge resilience versus growth exposure in one place.</div>
+  `;
+
+  const incomeSourceEntries = sortMapEntries(incomeSourceMap, 8);
+  const sourceTotal = incomeSourceEntries.reduce((sum, [, value])=>sum + value, 0) || 1;
+  document.getElementById('overviewIncomeSources').innerHTML = incomeSourceEntries.length ? `
+    <div class="overview-list">
+      ${incomeSourceEntries.map(([label, value])=>`
+        <div class="overview-list-row">
+          <div class="overview-list-main">
+            <div class="overview-list-title">${label}</div>
+            <div class="overview-list-meta">${shareText(value, sourceTotal)} of tracked inflow</div>
+            <div class="overview-progress"><span style="width:${pctWidth(value, sourceTotal)};background:linear-gradient(90deg,rgba(212,168,83,.35),rgba(212,168,83,.95))"></span></div>
+          </div>
+          <div class="overview-list-value"><strong>${fmt(value)}</strong><span>${shareText(value, sourceTotal)}</span></div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="overview-caption">Source-level visibility helps compare salary slips, brokerage dividends, card rewards, gifts, loans, and other inflow streams side by side.</div>
+  ` : '<div class="empty-state"><h4>No income sources yet</h4><p>Add income entries to see which sources are actually funding your system.</p></div>';
+
+  const allHoldings = [
+    ...DATA.stocks.map((stock)=>({
+      name: stock.ticker || stock.company,
+      meta: stock.company || stock.sector || getStockBrokerName(stock),
+      value: Number(stock.current_value || 0),
+      pnl: Number(stock.pnl || 0)
+    })),
+    ...DATA.mutual_funds.map((fund)=>({
+      name: fund.name,
+      meta: fund.platform || fund.fund_house || fund.category || 'Mutual Fund',
+      value: Number(fund.current_value || 0),
+      pnl: Number(fund.returns || 0)
+    }))
+  ].sort((a,b)=>b.value-a.value).slice(0,8);
+  const maxHoldingValue = Math.max(...allHoldings.map((holding)=>holding.value), 1);
+  document.getElementById('topHoldings').innerHTML = allHoldings.length ? `
+    <div class="overview-list">
+      ${allHoldings.map((holding)=>`
+        <div class="overview-list-row">
+          <div class="overview-list-main">
+            <div class="overview-list-title">${holding.name}</div>
+            <div class="overview-list-meta">${holding.meta || 'Holding'} · <span class="${holding.pnl>=0?'pos':'neg'}">${formatSignedCurrency(holding.pnl)}</span> P&amp;L</div>
+            <div class="overview-progress"><span style="width:${pctWidth(holding.value, maxHoldingValue)};background:linear-gradient(90deg,rgba(167,139,250,.32),rgba(212,168,83,.96))"></span></div>
+          </div>
+          <div class="overview-list-value"><strong>${fmt(holding.value)}</strong><span class="${holding.pnl>=0?'pos':'neg'}">${formatSignedCurrency(holding.pnl)}</span></div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="overview-caption">Largest positions show where your current market value and unrealized P&amp;L are concentrating.</div>
+  ` : '<div class="empty-state"><h4>No holdings yet</h4><p>Add stocks or mutual funds to see where your market exposure is concentrated.</p></div>';
+
+  const trendCaption = document.getElementById('overviewTrendCaption');
+  if(trendCaption){
+    trendCaption.textContent = monthlyRows.length
+      ? `Recent trend spans ${monthlyRows.length} months. Net flow in the latest visible month is ${formatSignedCurrency(monthlyRows[monthlyRows.length - 1].net)}.`
+      : 'Income, expenses, and investment deployment across recent months.';
+  }
+  const cashUseCaption = document.getElementById('overviewCashUseCaption');
+  if(cashUseCaption){
+    cashUseCaption.textContent = totalInflow
+      ? `Out of ${fmt(totalInflow)} tracked inflow, ${fmt(totalExpense)} is spent, ${fmt(totalInvestmentFlow)} is deployed, and ${formatSignedCurrency(freeCashAfterDeploy)} remains after all visible outflows.`
+      : 'How your current ledger is being consumed between spending, investing, and transfers.';
   }
 
-  // Top Holdings
-  const allHoldings = [
-    ...DATA.stocks.map(s=>({name:s.ticker||s.company,val:Number(s.current_value||0),pnl:Number(s.pnl||0)})),
-    ...DATA.mutual_funds.map(m=>({name:m.name,val:Number(m.current_value||0),pnl:Number(m.returns||0)}))
-  ].sort((a,b)=>b.val-a.val).slice(0,8);
-  document.getElementById('topHoldings').innerHTML = allHoldings.length ? allHoldings.map(h=>`
-    <div class="sr"><span class="sl">${h.name}</span><span class="sv">${fmt(h.val)} <small class="${h.pnl>=0?'pos':'neg'}">${fmt(h.pnl)}</small></span></div>
-  `).join('') : '<div class="empty-state"><h4>No holdings yet</h4><p>Add stocks or mutual funds to see them here</p></div>';
+  destroyChart('chOvTrend');
+  if(monthlyRows.length){
+    CHARTS.chOvTrend = new Chart(document.getElementById('chOvTrend'), {
+      data:{
+        labels: monthlyRows.map((row)=>row.label),
+        datasets:[
+          { type:'bar', label:'Income', data:monthlyRows.map((row)=>row.income), backgroundColor:'rgba(52,211,153,.55)', borderRadius:10, maxBarThickness:28 },
+          { type:'bar', label:'Expenses', data:monthlyRows.map((row)=>row.expense), backgroundColor:'rgba(248,113,113,.48)', borderRadius:10, maxBarThickness:28 },
+          { type:'bar', label:'Investments', data:monthlyRows.map((row)=>row.investment), backgroundColor:'rgba(212,168,83,.45)', borderRadius:10, maxBarThickness:28 },
+          { type:'line', label:'Net', data:monthlyRows.map((row)=>row.net), borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,.12)', pointBackgroundColor:'#60a5fa', pointRadius:3, pointHoverRadius:4, tension:.35, borderWidth:2.4, yAxisID:'y' }
+        ]
+      },
+      options:{
+        maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{ legend:{ position:'top' } },
+        scales:{
+          x:{ grid:{ display:false }, ticks:{ color:'#8b8b9a' } },
+          y:{
+            grid:{ color:'rgba(255,255,255,.05)' },
+            ticks:{ color:'#8b8b9a', callback:(value)=>'₹' + Number(value).toLocaleString('en-IN') }
+          }
+        }
+      }
+    });
+  }
+
+  const incomeChartEntries = sortMapEntries(incomeBucketMap, 7);
+  destroyChart('chOvIncomeMix');
+  if(incomeChartEntries.length){
+    CHARTS.chOvIncomeMix = new Chart(document.getElementById('chOvIncomeMix'), {
+      type:'doughnut',
+      data:{
+        labels: incomeChartEntries.map(([label])=>label),
+        datasets:[{
+          data: incomeChartEntries.map(([, value])=>value),
+          backgroundColor:['#34d399','#60a5fa','#d4a853','#a78bfa','#22d3ee','#fb923c','#f472b6'],
+          borderWidth:0,
+          borderRadius:4
+        }]
+      },
+      options:{ cutout:'62%', plugins:{ legend:{ position:'right', labels:{ padding:8, font:{ size:10 } } } } }
+    });
+  }
+
+  const expenseChartEntries = sortMapEntries(expenseCategoryMap, 7);
+  destroyChart('chOvExpenseMix');
+  if(expenseChartEntries.length){
+    CHARTS.chOvExpenseMix = new Chart(document.getElementById('chOvExpenseMix'), {
+      type:'doughnut',
+      data:{
+        labels: expenseChartEntries.map(([label])=>label),
+        datasets:[{
+          data: expenseChartEntries.map(([, value])=>value),
+          backgroundColor:['#f87171','#fb923c','#f472b6','#d4a853','#60a5fa','#a78bfa','#22d3ee'],
+          borderWidth:0,
+          borderRadius:4
+        }]
+      },
+      options:{ cutout:'62%', plugins:{ legend:{ position:'right', labels:{ padding:8, font:{ size:10 } } } } }
+    });
+  }
+
+  const cashUseRows = [
+    { label:'Expenses', value:totalExpense, color:'#f87171' },
+    { label:'Investments', value:totalInvestmentFlow, color:'#d4a853' },
+    { label:'Transfers', value:totalTransferFlow, color:'#60a5fa' },
+    { label:freeCashAfterDeploy >= 0 ? 'Remaining Buffer' : 'Funding Gap', value:Math.abs(freeCashAfterDeploy), color:freeCashAfterDeploy >= 0 ? '#34d399' : '#a78bfa' }
+  ].filter((row)=>row.value > 0);
+  destroyChart('chOvIncExp');
+  if(cashUseRows.length){
+    CHARTS.chOvIncExp = new Chart(document.getElementById('chOvIncExp'), {
+      type:'doughnut',
+      data:{
+        labels: cashUseRows.map((row)=>row.label),
+        datasets:[{
+          data: cashUseRows.map((row)=>row.value),
+          backgroundColor: cashUseRows.map((row)=>row.color),
+          borderWidth:0,
+          borderRadius:4
+        }]
+      },
+      options:{ cutout:'62%', plugins:{ legend:{ position:'right', labels:{ padding:8, font:{ size:10 } } } } }
+    });
+  }
+
+  const allocData = assetRows.map((row)=>row.value);
+  const allocLabels = assetRows.map((row)=>row.name);
+  destroyChart('chOvAlloc');
+  if(allocData.length){
+    CHARTS.chOvAlloc = new Chart(document.getElementById('chOvAlloc'), {
+      type:'doughnut',
+      data:{
+        labels: allocLabels,
+        datasets:[{
+          data: allocData,
+          backgroundColor:['#60a5fa','#d4a853','#34d399','#a78bfa'],
+          borderWidth:0,
+          borderRadius:4
+        }]
+      },
+      options:{ cutout:'62%', plugins:{ legend:{ position:'right', labels:{ padding:10, font:{ size:10 } } } } }
+    });
+  }
 }
 
 // ═══════════════════════════════════════════
